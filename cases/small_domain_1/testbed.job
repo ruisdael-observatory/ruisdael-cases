@@ -1,0 +1,21 @@
+#!/bin/bash
+#SBATCH -t 1:00:00
+#SBATCH -n 24  #total number of tasks, number of nodes calculated automatically 
+
+# Other useful SBATCH options
+# #SBATCH -N 2  #number of nodes 
+# #SBATCH --ntasks-per-node=16
+# #SBATCH --constraint=ivy # Runs only on Ivy Bridge nodes
+# #SBATCH --constraint=haswell # Runs only on Haswell nodes (faster, AVX2)
+
+module load 2019
+module load netCDF-Fortran/4.4.4-foss-2018b
+module load CMake/3.12.1-GCCcore-7.3.0
+module unload OpenMPI/3.1.1-GCC-7.3.0-2.30
+module load OpenMPI/3.1.4-GCC-7.3.0-2.30
+# module load Hypre/2.14.0-foss-2018b
+
+DALES=$HOME/dales/build/src/dales4
+
+# cd somewhere - otherwise runs in same directory as submission
+srun $DALES namoptions.001
