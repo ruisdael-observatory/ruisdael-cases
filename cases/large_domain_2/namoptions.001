@@ -1,0 +1,251 @@
+&RUN
+iexpnr     = 001
+lwarmstart = .false.
+startfile  = 'initd001h00mx000y000.001'
+runtime    = 57600
+trestart   = 21600
+ladaptive  = .true.
+irandom    = 1
+randthl    = 0.1
+randqt     = 2.5e-5
+nsv        = 3
+nprocx     = 12
+nprocy     = 8
+/
+
+&DOMAIN
+itot       = 864
+jtot       = 576
+kmax       = 128
+xsize      = 172800
+ysize      = 115200
+
+kmax_soil  = 4         ! soil layers for new LSM
+
+xlat = 52. 
+xlon = 4.
+/
+
+&PHYSICS
+z0         = 1e-3
+ps         = 102000.00
+thls       = 287
+lmoist     = .true.
+lcoriol    = .true.
+igrw_damp  = 3       ! 3 = nudge (damping) to mean profile
+
+iradiation = 4      ! 4 = RRTMG
+timerad    = 60
+/
+
+&NAMSURFACE
+wtsurf     = 0.
+wqsurf     = 0.
+
+
+! isurf      = 2   ! 2 = Ts, calculated fluxes,
+
+! for new LSM scheme
+isurf      = 11  
+z0mav = 1e-4    ! not used
+z0hav = 1e-4    ! not used
+albedoav = 0.17 ! Albedo is not yet spatially variable
+/
+
+&DYNAMICS
+llsadv     = .false.
+lqlnr      = .false.
+cu         = 0.
+cv         = 0.
+
+iadv_mom   = 52
+iadv_tke   = 52
+iadv_thl   = 52
+iadv_qt    = 52
+iadv_sv    = 52, 52, 52
+/
+
+&NAMMICROPHYSICS
+imicro = 2          ! 2 = warm, 5=simpleice
+l_sb = .true.       ! true = Seiffert/Beheng, false = KK00
+Nc_0 = 300e6        ! cloud droplet conventration
+/
+
+&NAMSUBGRID
+ldelta     = .false.
+/
+
+&NAMNETCDFSTATS
+lnetcdf = .true.
+lsync = .true.
+/
+
+&NAMBUDGET
+lbudget    = .false.
+dtav       = 60.
+timeav     = 60.
+/
+
+&NAMCHECKSIM
+tcheck     = 1
+/
+
+&NAMSAMPLING
+dtav       = 60.
+timeav     = 60.
+lsampcl    = .false.
+lsampco    = .false.
+lsampup    = .false.
+lsampbuup  = .false.
+/
+
+&NAMTIMESTAT
+ltimestat   = .true.
+dtav        = 60
+/
+
+&NAMCROSSSECTION
+lcross      = .true.
+!lxz         = .false.
+!lyz         = .false.
+!lspan       = .false.
+dtav        = 60
+crossheight = 1 2 5 21
+crossplane  = 72          ! take vertical cross sections far from the nudging edge
+crossortho  = 72          ! remember to adapt to tile size
+/
+
+&NAMGENSTAT
+lstat       = .true.
+dtav        = 60
+timeav      = 60
+/
+
+&NAMFIELDDUMP
+lfielddump  = .false.
+dtav        = 600
+ldiracc     = .true.
+/
+
+&NAMCAPE        ! for liquid,rain,total water path LWP, RWP, TWP
+lcape = .true.
+dtav  = 600
+/
+
+&NAMSTATTEND
+dtav = 60
+ltend = .false.
+/
+
+&NAMNUDGE
+lnudge = .false.
+tnudgefac = 10800
+/
+
+&NAMNUDGEBOUNDARY
+lnudge_boundary = .true.
+lnudge_boundary_sv = .true.
+lperturb_boundary = .true.
+
+nudge_offset = 2500
+nudge_width = 600
+nudge_radius = 3000
+nudge_tau = 5
+
+perturb_offset = 3500
+perturb_width = 600
+perturb_radius = 3000
+perturb_zmax = 500
+perturb_blocksize=2
+perturb_ampl = 0.1
+
+dt_input_lbc = 3600
+dt_input_lbc_sv = 21600
+/
+
+&NAMDATETIME
+l_datetime = .true.
+startyear  = 2017
+startmonth = 8
+startday   = 19
+timezone   = 2
+/
+
+&NAMEMISSION
+l_emission = .true.
+kemis = 9
+svskip = 2
+emisnames(1) = 'co2   '
+/
+
+! Use FFTW library for Poisson equation solver
+&NAMSOLVER
+solver_id = 100
+/
+
+! New LSM, used if &NAMSURFACE : isurf = 11
+&NAMLSM
+lheterogeneous = .false.
+lfreedrainage = .true.
+dz_soil = 1.89 0.72 0.21 0.07
+iinterp_t = 1
+iinterp_theta = 4
+/
+
+! Homogeneous initialisation of LSM, when lheterogeneous = .false.
+
+&NAMLSM_HOMOGENEOUS
+! Sub-grid tile fractions, should sum to 1:
+c_low = 0.5
+c_high = 0.3
+c_bare = 0.1
+c_water = 0.1
+
+! Roughness lengths for the sub-grid tiles:
+z0m_low = 0.075
+z0m_high = 1.
+z0m_bare = 0.01
+z0m_water = 0.001
+
+z0h_low = 0.003
+z0h_high = 1.
+z0h_bare = 0.001
+z0h_water = 0.0001
+
+! Conductivity skin layer for stable (s) and unstable (us) conditions:
+lambda_s_low = 10.
+lambda_s_high = 15.
+lambda_s_bare = 15.
+
+lambda_us_low = 10.
+lambda_us_high = 40.
+lambda_us_bare = 15.
+
+! Leaf area index low and high vegetation:
+lai_low = 2.5
+lai_high = 4.
+
+! Minimum canopy or soil resistance:
+rs_min_low = 100.
+rs_min_high = 250.
+rs_min_bare = 50.
+
+! Initial profiles of soil temperature and soil moisture (from bottom to top):
+t_soil_p = 288.44687 289.6885 289.43475 290.13162
+theta_soil_p = 0.42387354 0.38100946 0.37343964 0.3665535
+
+! Soil index in `van_genuchten_parameters.nc`:
+soil_index_p = 4 4 4 4
+
+! Coefficients used to calculate the root fraction.
+ar_low = 10.739
+br_low = 2.608
+
+ar_high = 4.453
+br_high = 1.631
+
+! Coefficient for canopy resistance high vegetation
+gD_high = 0.0003
+
+! Fixed surface temperature open water:
+tskin_water = 290

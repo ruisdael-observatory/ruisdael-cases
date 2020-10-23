@@ -1,0 +1,28 @@
+#!/bin/bash
+#SBATCH -t 24:00:00
+#SBATCH -N 1 #number of nodes 
+
+#module load 2019
+#module load Python/3.6.6-foss-2018b
+#module load Cartopy/0.15.1-foss-2018b-Python-3.6.6
+#module load netcdf4-python/1.4.1-foss-2018b-Python-3.6.6
+#module load Tkinter/3.6.6-foss-2018b-Python-3.6.6
+
+#source /home/janssonf/KNMI_testbed/testbed_env/bin/activate
+
+# netcdf doesn't work when modules and virtual environment set up here
+# but works when set up before submitting job.
+
+# Switch to working directory
+cd /projects/0/einf170/janssonf/nudge_boundary_Harmonie_test
+
+# Run!
+MERGE=/home/janssonf/KNMI_testbed/cases/nudge_boundary_HARMONIE/mergecross.py
+
+which python
+
+python $MERGE crossxy.0001 thl 
+python $MERGE crossxy.0001 qt 
+python $MERGE crossxy.0001 u 
+python $MERGE crossxy.0001 v
+
