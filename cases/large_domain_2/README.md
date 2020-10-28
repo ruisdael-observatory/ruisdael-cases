@@ -47,6 +47,24 @@ cp ~/dales/data/van_genuchten_parameters.nc ./
 ```
 
 
+second try, 2b. 9 Nodes = 12 x 18 tasks :
+```
+RUNDIR=/projects/0/einf170/janssonf/run_large_domain_2b/
+mkdir $RUNDIR 
+python create_boundaries.py
+cp ~/dales/data/van_genuchten_parameters.nc $RUNDIR 
+# new LBC for co2
+cp /scratch/shared/mdbruine/dales/boundaries/ruisdael_procx12_procy18_2017081906/lbcsv* $RUNDIR
+# same emission files as before (not tiled)
+cp /scratch/shared/mdbruine/dales/runs/ruisdael/co2*  $RUNDIR
+cp namoptions.001 testbed.job $RUNDIR
+# add column in scalar.inp.001
+
+# copy radiation data
+cp ../run_large_domain_2/rrtmg_*.nc ../run_large_domain_2/backrad.inp.001.nc $RUNDIR/
+```
+
+
 Run the job:
 ```
 cp namoptions.001 testbed.job <output directory>
@@ -68,13 +86,16 @@ Trying without MPI-aware netcdf open, seems to work.
 
 
 Turning on radiation. Did not have it on before, in last ruisdael run ?
-iradiation = 4      ! 4 = RRTMG                                                                                                                                            
+iradiation = 4      ! 4 = RRTMG 
 timerad    = 60                
 -> also needs rrtmg*.nc files and backrad.
-
+-> need xtime=6   ! the starting time, also for emissions
 
 Now using imicro=2 - maybe use 6 instead.
 Using albedo 0.3, 0.17 would be more typical.
+-- changed in 2b run
 
+
+consider adding consecutive in job script
 
 

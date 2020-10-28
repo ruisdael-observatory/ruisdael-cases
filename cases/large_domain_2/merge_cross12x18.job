@@ -9,7 +9,7 @@ module load netcdf4-python/1.4.1-foss-2018b-Python-3.6.6
 cd /projects/0/einf170/janssonf/run_large_domain_2b
 
 # Run!
-MERGE=/home/janssonf/KNMI_testbed/cases/nudge_boundary_HARMONIE/mergecross.py
+MERGE=/home/janssonf/ruisdael-cases/cases/large_domain_2/mergecross.py
 
 which python
 
@@ -17,6 +17,7 @@ python $MERGE crossxy.0001 thl &
 python $MERGE crossxy.0001 qt &
 python $MERGE crossxy.0001 u  &
 python $MERGE crossxy.0001 v &
+python $MERGE crossxy.0001 e120 &
 python $MERGE crossxy.0001 sv003 &
 python $MERGE crossxy.0002 sv003 &
 python $MERGE crossxy.0005 sv003 &
@@ -26,6 +27,11 @@ python $MERGE cape rwp &
 python $MERGE cape twp &
 python $MERGE cape cldtop &	
 python $MERGE cape surfprec &
+
+python $MERGE surfcross tskin &
+python $MERGE surfcross obukh &
+
+
 
 wait
 

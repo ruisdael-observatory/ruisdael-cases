@@ -218,12 +218,12 @@ if __name__ == '__main__':
         ktot = 128
 
         # Number of x,y MPI processes
-        nprocx = 12 # 4 nodes, 72x72 points per task
-        nprocy = 8
+        nprocx = 12 # 9 nodes, 72x32 points per task
+        nprocy = 18
 
         # Output directory (boundaries are LARGE)
         #output_dir = '/nobackup/users/stratum/KNMI_testbed/cases/nudge_boundary_HARMONIE/'
-        output_dir = '/projects/0/einf170/janssonf/run_large_domain_2/'
+        output_dir = '/projects/0/einf170/janssonf/run_large_domain_2b/'
 
         # Harmonie data path (with yyyy/mm/dd/hh directory structure underneath)
         #data_path = '/nobackup/users/stratum/DOWA/DOWA_fulldomain/'

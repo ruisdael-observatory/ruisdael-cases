@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH -t 24:00:00
-#SBATCH -n 96  #total number of tasks, number of nodes calculated automatically 
+#SBATCH -t 60:00:00
+#SBATCH -n 216  #total number of tasks, number of nodes calculated automatically 
 #SBATCH --constraint=haswell # Runs only on Haswell nodes (faster, AVX2)
 
 # Other useful SBATCH options

@@ -17,7 +17,7 @@ import os
 
 expnr = 1
 npx   = 12
-npy   = 8
+npy   = 18
 itot  = 864 #1680
 jtot  = 576 #1680
 ktot  = 128
@@ -37,7 +37,7 @@ else:
 #
 if 'xz' in base:
     mode = 'xz'
-elif 'xy' in base:
+elif 'xy' in base or 'cape' in base or 'surfcross' in base:
     mode = 'xy'
 
 if mode == 'xy':
@@ -84,6 +84,7 @@ for i in range(npx):
             for name, var in src.variables.items():
                 print(name)
                 if name == 'time' or name[0] == 'x' or name[0] == 'y' or name[0] == 'z' or name.replace(mode, '') == variable:
+                    print('  creating', name, var.datatype, var.dimensions)
                     dst.createVariable(name, var.datatype, var.dimensions)
 
             # Copy time
