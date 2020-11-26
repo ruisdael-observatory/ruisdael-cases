@@ -168,9 +168,9 @@ nudge_radius = 4000
 
 nudge_tau = 5
 
-perturb_offset = 3500
+perturb_offset = 5000
 perturb_width = 600
-perturb_radius = 3000
+perturb_radius = 4000
 perturb_zmax = 500
 perturb_blocksize=2
 perturb_ampl = 0.1
