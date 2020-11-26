@@ -10,7 +10,7 @@ data_path = '/projects/0/einf170/Harmonie_boundaries'
 ```
 
 Data files at ECMWF tape archive: 
-ec:/nkl/harmonie/DOWA/DOWA_40h12tg2_fERA5/ptF_2018/2018/month/day/00/{clw,ta,hus,ua,ps,va,sst}*.nc
+ec:/nkl/harmonie/DOWA/DOWA_40h12tg2_fERA5/ptF_2018/2018/month/day/00/{clw,ta,hus,ua,ps,va,sst,tg,wsa}*.nc
 From Jan. 2019: ec:/nkl/harmonie/WINS50/WINS50_43h21_fERA5_CTL_ptA/... (this is the new HARMONIE version)
 Roughly 11 GB per day.
 
