@@ -20,6 +20,7 @@ nprocy = 7
 itot = 196
 jtot = 196
 kmax  = 160
+kmax_soil  = 4         ! soil layers for new LSM
 
 xsize = 15000
 ysize = 15000
@@ -86,11 +87,11 @@ albedoav = 0.17 ! Albedo is not yet spatially variable
 cu =  0.
 cv =  0.
 
-iadv_mom = 52
-iadv_tke = 52
-iadv_thl = 52
-iadv_qt  = 52
-iadv_sv  = 52
+iadv_mom = 2 ! switch to second as suggested
+iadv_tke = 2
+iadv_thl = 2
+iadv_qt  = 2
+iadv_sv  = 2
 
 lqlnr = .false.
 /

@@ -60,8 +60,11 @@ if __name__ == '__main__':
     # --------------------
     # Settings
     # --------------------
+    argv = sys.argv[1]  # date yyyy-mm-dd
+    date = datetime.datetime.strptime(argv,'%Y%m%d')
 
-    expname     = 'cabauw_2017_08_19'
+    print(date)
+    expname     = 'cabauw_testbed'
     expnr       = 1       # DALES experiment number
     iloc        = 7+12    # Location in DDH/NetCDF files (7+12 = 10x10km average Cabauw)
     n_accum     = 1       # Number of time steps to accumulate in the forcings
@@ -69,9 +72,9 @@ if __name__ == '__main__':
     auto_submit = False   # Directly submit the experiments (ECMWF only..)
 
     # 24 hour runs (cold or warm starts), starting at 00 UTC.
-    start  = datetime.datetime(year=2017, month=8, day=19)
-    end    = datetime.datetime(year=2017, month=8, day=20)
+    start  = date
     dt_exp = datetime.timedelta(hours=24)   # Time interval between experiments
+    end    = start + dt_exp
     t_exp  = datetime.timedelta(hours=24)   # Length of experiment
     eps    = datetime.timedelta(hours=1)
 
@@ -189,8 +192,8 @@ if __name__ == '__main__':
         # Create SLURM runscript
         print('Creating runscript')
         ntasks = nl['run']['nprocx']*nl['run']['nprocy']
-        nnodes = np.ceil(ntasks/28)
-        create_runscript ('L{0:03d}_{1}'.format(expnr, n), ntasks, nnodes, walltime=35, work_dir=workdir, expnr=expnr)
+        nnodes = int(np.ceil(ntasks/28))
+        create_runscript ('DALES{0:03d}_{1}'.format(expnr, n), ntasks, nnodes, walltime=35, work_dir=workdir, expnr=expnr)
 
         # Copy/move files to work directory
         exp_str = '{0:03d}'.format(expnr)
