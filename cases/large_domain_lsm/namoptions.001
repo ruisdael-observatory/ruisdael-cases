@@ -2,15 +2,15 @@
 iexpnr     = 001
 lwarmstart = .false.
 startfile  = 'initd001h00mx000y000.001'
-runtime    = 64800
-trestart   = 21600
+runtime    = 36000
+trestart   = 3600
 ladaptive  = .true.
 irandom    = 1
 randthl    = 0.1
 randqt     = 2.5e-5
 nsv        = 0
 nprocx     = 12
-nprocy     = 8
+nprocy     = 12
 /
 
 &DOMAIN
@@ -25,6 +25,7 @@ kmax_soil  = 4         ! soil layers for new LSM
 xlat = 52.
 xlon = 4.
 xtime = 6
+xday = 228
 /
 
 &PHYSICS
@@ -76,6 +77,16 @@ imicro = 0          ! 2 = warm, 5=simpleice
 !imicro = 6          ! 2 = warm, 5=simpleice
 l_sb = .true.       ! true = Seiffert/Beheng, false = KK00
 Nc_0 = 300e6        ! cloud droplet conventration
+/
+
+&NAMRADIATION
+lCnstAlbedo = .true.
+/
+
+&NAMRADSTAT
+lstat = .true.
+dtav   = 60
+timeav = 60
 /
 
 &NAMSUBGRID
@@ -130,7 +141,7 @@ timeav      = 60
 
 &NAMTIMESTAT
 ltimestat  = .true.
-dtav       = 900.
+dtav       = 60.
 /
 
 &NAMFIELDDUMP
@@ -165,9 +176,13 @@ lnudge_boundary = .true.
 lnudge_boundary_sv = .false.
 lperturb_boundary = .true.
 
-nudge_offset = 4600  ! tile size in y = 6400 m, leave 3*width on the inside
-nudge_width  =  600
-nudge_radius = 4000
+nudge_offset = 2500  ! first attempt
+nudge_width  =  600  ! -> high velocities outside domain
+nudge_radius = 3000
+
+!nudge_offset = 4600  ! tile size in y = 6400 m, leave 3*width on the inside
+!nudge_width  =  600
+!nudge_radius = 4000
 
 nudge_tau = 5
 
@@ -182,13 +197,13 @@ dt_input_lbc = 3600
 dt_input_lbc_sv = 21600
 /
 
-&NAMDATETIME
-l_datetime = .true.
-startyear  = 2016
-startmonth = 8
-startday   = 15
-timezone   = 2
-/
+!&NAMDATETIME
+!l_datetime = .true.
+!startyear  = 2016
+!startmonth = 8
+!startday   = 15
+!timezone   = 2
+!/
 
 &NAMEMISSION
 l_emission = .false.

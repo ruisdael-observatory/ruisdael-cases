@@ -7,6 +7,7 @@ import netCDF4 as nc4
 import xarray as xr
 import numpy as np
 import datetime
+import sys
 
 import cartopy
 import cartopy.crs as ccrs
@@ -210,12 +211,12 @@ if __name__ == '__main__':
 
         # Number of x,y MPI processes
         nprocx = 12
-        nprocy = 8
+        nprocy = 12
 
         # Output directory (boundaries are LARGE)
         #output_dir = '/nobackup/users/stratum/KNMI_testbed/cases/nudge_boundary_HARMONIE/'
         #output_dir = '/projects/0/einf170/janssonf/run_large_domain_2b/'
-        output_dir = '/home/scratch1/meteo_data/Ruisdael/20160815_t06/'
+        output_dir = '/home/scratch1/meteo_data/Ruisdael/20160815/'
 
         # Harmonie data path (with yyyy/mm/dd/hh directory structure underneath)
         #data_path = '/nobackup/users/stratum/DOWA/DOWA_fulldomain/'
@@ -228,8 +229,8 @@ if __name__ == '__main__':
     # -----------------
     if False:
         # Start and end time (index in HARMONIE files)
-        t0 = 7
-        t1 = 14
+        t0 = 6
+        t1 = 16
 
         # Lower left corner LES domain in HARMONIE (m)
         x0 = 912500
@@ -251,7 +252,7 @@ if __name__ == '__main__':
         # Output directory (boundaries are LARGE)
         #output_dir = '/nobackup/users/stratum/KNMI_testbed/cases/nudge_boundary_HARMONIE/'
         #output_dir = '/projects/0/einf170/janssonf/nudge_boundary_Harmonie_test/'
-        output_dir = '/home/scratch1/meteo_data/Ruisdael/20170819_t06/'
+        output_dir = '/home/scratch1/meteo_data/Ruisdael/20160815/'
 
         # Harmonie data path (with yyyy/mm/dd/hh directory structure underneath)
         #data_path = '/nobackup/users/stratum/DOWA/DOWA_fulldomain/'
@@ -266,7 +267,9 @@ if __name__ == '__main__':
 
     # LES grid
     #grid = Grid(xsize, ysize, zsize, itot, jtot, ktot)
-    grid = Grid_stretched(xsize, ysize, itot, jtot, ktot, dz0=25, alpha=0.017)
+    #grid = Grid_stretched(xsize, ysize, itot, jtot, ktot, dz0=25, alpha=0.017)
+    grid = Grid_stretched(xsize, ysize, itot, jtot, ktot, dz0=25, alpha=0.014)
+    #grid.plot()
 
     # Hybrid sigma grid tools
     grid_sig = hsg.Sigma_grid('data/H40_65lev.txt')
@@ -307,93 +310,88 @@ if __name__ == '__main__':
     np.save('{}/lon_LES'.format(output_dir), lon_LES)
     np.save('{}/lat_LES'.format(output_dir), lat_LES)
 
-    #print("corners")
-    #print("(%5.2f %5.2f)  (%5.2f %5.2f)"%(lat_LES[0,-1], lon_LES[0,-1], lat_LES[-1,-1], lon_LES[-1,-1]))
-    #print("(%5.2f %5.2f)  (%5.2f %5.2f)"%(lat_LES[0,0], lon_LES[0,0], lat_LES[-1,0], lon_LES[-1,0]))
+    # Create hourly boundaries:
+    for t in range(t0, t1+1):
+        print('Processing t={0:>2d}:00 UTC'.format(t))
+        start_time = datetime.datetime.now()
 
-    if (True):
-        # Create hourly boundaries:
-        for t in range(t0, t1+1):
-            print('Processing t={0:>2d}:00 UTC'.format(t))
-            start_time = datetime.datetime.now()
+        # Load data from current time step (not really necessary, but otherwise
+        # from here on some variable do have a time dimension, and some dont't....)
+        # Also, nice time to drop the no longer necessary xarray stuff with `.values`
+        u_t  = u [t,:,:,:].values
+        v_t  = v [t,:,:,:].values
+        T_t  = T [t,:,:,:].values
+        qv_t = q [t,:,:,:].values
+        ql_t = ql[t,:,:,:].values
+        ps_t = ps[t,:,:  ].values
+        Ts_t = Ts[t,:,:  ].values
 
-            # Load data from current time step (not really necessary, but otherwise
-            # from here on some variable do have a time dimension, and some dont't....)
-            # Also, nice time to drop the no longer necessary xarray stuff with `.values`
-            u_t  = u [t,:,:,:].values
-            v_t  = v [t,:,:,:].values
-            T_t  = T [t,:,:,:].values
-            qv_t = q [t,:,:,:].values
-            ql_t = ql[t,:,:,:].values
-            ps_t = ps[t,:,:  ].values
-            Ts_t = Ts[t,:,:  ].values
+        # Virtual temperature for height calculation
+        Tv_t = T_t * (1+cd['eps']*qv_t - ql_t)
 
-            # Virtual temperature for height calculation
-            Tv_t = T_t * (1+cd['eps']*qv_t - ql_t)
+        # Calculate pressure and height on full and half HARMONIE grid levels
+        ph = grid_sig.calc_half_level_pressure(ps_t)
+        zh = grid_sig.calc_half_level_Zg(ph, Tv_t)
+        p  = grid_sig.calc_full_level_pressure(ph)
+        z  = grid_sig.calc_full_level_Zg(zh)
 
-            # Calculate pressure and height on full and half HARMONIE grid levels
-            ph = grid_sig.calc_half_level_pressure(ps_t)
-            zh = grid_sig.calc_half_level_Zg(ph, Tv_t)
-            p  = grid_sig.calc_full_level_pressure(ph)
-            z  = grid_sig.calc_full_level_Zg(zh)
+        # Conversions HARMONIE quantities -> LES
+        exner  = (p[::-1]/cd['p0'])**(cd['Rd']/cd['cp'])
+        exners = (ps_t/cd['p0'])**(cd['Rd']/cd['cp'])
 
-            # Conversions HARMONIE quantities -> LES
-            exner  = (p[::-1]/cd['p0'])**(cd['Rd']/cd['cp'])
-            exners = (ps_t/cd['p0'])**(cd['Rd']/cd['cp'])
+        th_t   = T_t  / exner
+        ths_t  = Ts_t / exners
+        thl_t  = th_t - cd['Lv'] / (cd['cp'] * exner) * ql_t
+        qt_t   = qv_t + ql_t
 
-            th_t   = T_t  / exner
-            ths_t  = Ts_t / exners
-            thl_t  = th_t - cd['Lv'] / (cd['cp'] * exner) * ql_t
-            qt_t   = qv_t + ql_t
+        # Mean profiles to init LES (prof.inp)
+        if (t==t0):
+            mean_u = np.zeros(grid.ktot, dtype=np.float)
+            mean_v = np.zeros(grid.ktot, dtype=np.float)
+            mean_t = np.zeros(grid.ktot, dtype=np.float)
+            mean_q = np.zeros(grid.ktot, dtype=np.float)
 
-            # Mean profiles to init LES (prof.inp)
-            if (t==t0):
-                mean_u = np.zeros(grid.ktot, dtype=np.float)
-                mean_v = np.zeros(grid.ktot, dtype=np.float)
-                mean_t = np.zeros(grid.ktot, dtype=np.float)
-                mean_q = np.zeros(grid.ktot, dtype=np.float)
+        # Do the rest in yz slices per MPI task in the x-direction (otherwise memory -> BOEM!)
+        blocksize_x = int(itot / nprocx)
+        for mpiidx in range(0, nprocx):
+            print('Processing mpiidx={}/{}'.format(mpiidx+1, nprocx))
 
-            # Do the rest in yz slices per MPI task in the x-direction (otherwise memory -> BOEM!)
-            blocksize_x = int(itot / nprocx)
-            for mpiidx in range(0, nprocx):
-                print('Processing mpiidx={}/{}'.format(mpiidx+1, nprocx))
+            # Create the interpolator for HARMONIE -> LES
+            sx = np.s_[mpiidx*blocksize_x:(mpiidx+1)*blocksize_x]
+            intp  = ip.Grid_interpolator(u['x'].values, u['y'].values, z, grid.x[sx], grid.y, grid.z, grid.xh[sx], grid.yh, grid.zh, x0, y0)
 
-                # Create the interpolator for HARMONIE -> LES
-                sx = np.s_[mpiidx*blocksize_x:(mpiidx+1)*blocksize_x]
-                intp  = ip.Grid_interpolator(u['x'].values, u['y'].values, z, grid.x[sx], grid.y, grid.z, grid.xh[sx], grid.yh, grid.zh, x0, y0)
+            # Interpolate HARMONIE onto LES grid
+            # `::-1` reverses the vertical dimension (HARMONIE's data
+            # is aranged from top-to-bottom, LES from bottom-to-top
+            u_LES    = intp.interpolate_3d(u_t   [::-1,:,:], 'xh', 'y',  'z')
+            v_LES    = intp.interpolate_3d(v_t   [::-1,:,:], 'x',  'yh', 'z')
+            thl_LES  = intp.interpolate_3d(thl_t [::-1,:,:], 'x',  'y',  'z')
+            qt_LES   = intp.interpolate_3d(qt_t  [::-1,:,:], 'x',  'y',  'z')
+            ths_LES  = intp.interpolate_2d(ths_t [:,:     ], 'x',  'y'      )
 
-                # Interpolate HARMONIE onto LES grid
-                # `::-1` reverses the vertical dimension (HARMONIE's data
-                # is aranged from top-to-bottom, LES from bottom-to-top
-                u_LES    = intp.interpolate_3d(u_t   [::-1,:,:], 'xh', 'y',  'z')
-                v_LES    = intp.interpolate_3d(v_t   [::-1,:,:], 'x',  'yh', 'z')
-                thl_LES  = intp.interpolate_3d(thl_t [::-1,:,:], 'x',  'y',  'z')
-                qt_LES   = intp.interpolate_3d(qt_t  [::-1,:,:], 'x',  'y',  'z')
-                ths_LES  = intp.interpolate_2d(ths_t [:,:     ], 'x',  'y'      )
-
-                # Write the LBCs in binary format for LES
-                write_LBC(u_LES, v_LES, thl_LES, qt_LES, ths_LES, itot, jtot, nprocx, nprocy, mpiidx, t-t0, 0., iexpnr, output_dir)
-
-                if (t==t0):
-                    # Store mean profiles
-                    mean_u[:] += np.mean(u_LES,   axis=(0,1))
-                    mean_v[:] += np.mean(v_LES,   axis=(0,1))
-                    mean_t[:] += np.mean(thl_LES, axis=(0,1))
-                    mean_q[:] += np.mean(qt_LES,  axis=(0,1))
+            # Write the LBCs in binary format for LES
+            write_LBC(u_LES, v_LES, thl_LES, qt_LES, ths_LES, itot, jtot, nprocx, nprocy, mpiidx, t-t0, 0., iexpnr, output_dir)
 
             if (t==t0):
-                # Write initial profiles to prof.inp.expnr
-                mean_u /= nprocx
-                mean_v /= nprocx
-                mean_t /= nprocx
-                mean_q /= nprocx
+                # Store mean profiles
+                mean_u[:] += np.mean(u_LES,   axis=(0,1))
+                mean_v[:] += np.mean(v_LES,   axis=(0,1))
+                mean_t[:] += np.mean(thl_LES, axis=(0,1))
+                mean_q[:] += np.mean(qt_LES,  axis=(0,1))
 
-                tke = 0.1 * np.ones_like(grid.z)
-                write_initial_profiles(grid.z, mean_u, mean_v, mean_t, mean_q, tke, iexpnr, output_dir)
+        if (t==t0):
+            # Write initial profiles to prof.inp.expnr
+            mean_u /= nprocx
+            mean_v /= nprocx
+            mean_t /= nprocx
+            mean_q /= nprocx
 
-            # Statistics
-            end_time = datetime.datetime.now()
-            print('Elapsed = {}'.format(end_time-start_time))
+            tke = 0.1 * np.ones_like(grid.z)
+            write_initial_profiles(grid.z, mean_u, mean_v, mean_t, mean_q, tke, iexpnr, output_dir)
+
+        # Statistics
+        end_time = datetime.datetime.now()
+        print('Elapsed = {}'.format(end_time-start_time))
 
     # -----------------
     # Create backrad.inp file, from mean HARMONIE profiles,
@@ -453,45 +451,3 @@ if __name__ == '__main__':
 
         pl.colorbar(pc)
         pl.show()
-
-
-    if False:
-        kLES = 0
-        kHM = -1
-
-        pl.figure()
-        pl.subplot(221)
-        pl.pcolormesh((u['x']-x0)/1000., (u['y']-y0)/1000., u[t,kHM,:,:], vmin=u_LES[:,:,kLES].min(), vmax=u_LES[:,:,kLES].max(), cmap=pl.cm.magma)
-        pl.colorbar()
-        pl.xlim(0,xsize/1000)
-        pl.ylim(0,ysize/1000)
-
-        pl.subplot(222)
-        pl.pcolormesh(grid.xh/1000., grid.y/1000, u_LES[:,:,kLES].T, vmin=u_LES[:,:,kLES].min(), vmax=u_LES[:,:,kLES].max(), cmap=pl.cm.magma)
-        pl.colorbar()
-        pl.xlim(0,xsize/1000)
-        pl.ylim(0,ysize/1000)
-
-        pl.subplot(223)
-        pl.pcolormesh((u['x']-x0)/1000., (u['y']-y0)/1000., v[t,kHM,:,:], vmin=v_LES[:,:,kLES].min(), vmax=v_LES[:,:,kLES].max(), cmap=pl.cm.magma)
-        pl.colorbar()
-        pl.xlim(0,xsize/1000)
-        pl.ylim(0,ysize/1000)
-
-        pl.subplot(224)
-        pl.pcolormesh(grid.x/1000., grid.yh/1000, v_LES[:,:,kLES].T, vmin=v_LES[:,:,kLES].min(), vmax=v_LES[:,:,kLES].max(), cmap=pl.cm.magma)
-        pl.colorbar()
-        pl.xlim(0,xsize/1000)
-        pl.ylim(0,ysize/1000)
-
-        #pl.subplot(325)
-        #pl.pcolormesh((u['x']-x0)/1000., (u['y']-y0)/1000., T[t,kHM,:,:], vmin=T_LES[:,:,kLES].min(), vmax=T_LES[:,:,kLES].max(), cmap=pl.cm.magma)
-        #pl.colorbar()
-        #pl.xlim(0,xsize/1000)
-        #pl.ylim(0,ysize/1000)
-
-        #pl.subplot(326)
-        #pl.pcolormesh(grid.x/1000., grid.y/1000, T_LES[:,:,kLES].T, vmin=T_LES[:,:,kLES].min(), vmax=T_LES[:,:,kLES].max(), cmap=pl.cm.magma)
-        #pl.colorbar()
-        #pl.xlim(0,xsize/1000)
-        #pl.ylim(0,ysize/1000)

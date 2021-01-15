@@ -5,9 +5,9 @@
 #
 
 import numpy as np
-from numba import jit
+from numba import jit, prange
 
-@jit(nopython=True, nogil=True)
+@jit(nopython=True, nogil=True, parallel=True)
 def interpolate_kernel_3d(field_LES, field_LS, i0, j0, k0, ifac, jfac, kfac):
     """
     Tri-linear interpolation of HARMONIE field onto LES grid
@@ -18,7 +18,7 @@ def interpolate_kernel_3d(field_LES, field_LS, i0, j0, k0, ifac, jfac, kfac):
     jtot = field_LES.shape[1]
     ktot = field_LES.shape[2]
 
-    for i in range(itot):
+    for i in prange(itot):
         for j in range(jtot):
             for k in range(ktot):
 
@@ -35,7 +35,7 @@ def interpolate_kernel_3d(field_LES, field_LS, i0, j0, k0, ifac, jfac, kfac):
                                                               (1-kfac[il+1, jl+1, k]) * field_LS[ k0[il+1, jl+1, k]+1, jl+1, il+1 ] ))
 
 
-@jit(nopython=True, nogil=True)
+@jit(nopython=True, nogil=True, parallel=True)
 def interpolate_kernel_2d(field_LES, field_LS, i0, j0, ifac, jfac):
     """
     Bi-linear interpolation of HARMONIE field onto LES grid
@@ -45,7 +45,7 @@ def interpolate_kernel_2d(field_LES, field_LS, i0, j0, ifac, jfac):
     itot = field_LES.shape[0]
     jtot = field_LES.shape[1]
 
-    for i in range(itot):
+    for i in prange(itot):
         for j in range(jtot):
 
             il = i0[i]
