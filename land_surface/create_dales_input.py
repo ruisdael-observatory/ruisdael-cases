@@ -18,20 +18,33 @@ from era5_soil import init_theta_soil, download_era5_soil, calc_theta_rel
 # Settings
 # -----------------------------
 # Path to directory with `BOFEK2012_010m.nc` and `top10nl_landuse_010m.nc`
-spatial_data_path = '/projects/0/einf170/landuse_soil/'
-#spatial_data_path = '/home/scratch1/meteo_data/LASSIE/'
+spatial_data_path = '/projects/0/nwo21036/'
 
 # Output directory for downloaded ERA5 files
-era5_path = 'ERA5_soil/'
+era5_path = '/projects/0/nwo21036/ERA5_soil/'
 
 # Output directory of DALES input files
-output_path = 'DALES_input/'
+output_path = '/projects/0/nwo21036/DALES_input/'
 
 # Start date/time of experiment
-start_date = datetime(year=2016, month=8, day=15, hour=6)
+start_date = datetime(year=2021, month=9, day=24, hour=0)
 
-# Ruisdael domain:
+# Open BC domain 2022
+# power-of-two grid size
+# domain aligned with harmonie grid
 if True:
+    x0 = 917500.0
+    y0 = 965000.0
+    itot = 1024
+    jtot = 512
+    dx   = 156.25
+    dy   = 156.25
+
+    nprocx = 16
+    nprocy = 8
+
+# Ruisdael domain 2020:
+if False:
     x0 = 910000
     y0 = 940000
 

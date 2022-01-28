@@ -13,3 +13,19 @@ Land-surface/soil input DALES for large domain Ruisdael runs
 - `lsm_input_dales.py`: Helper script with a data structure for the required DALES LSM input, including methods to write the input to binaries (input DALES) or NetCDF.
 - `spatial_transforms.py`: Definition of the HARMONIE projection in `pyproj`.
 - `vegetation_properties.py`: Lookup tables with vegetation properties, including translation table from Top10NL land use types to IFS land use types.
+
+### Setup on Snellius 2022
+
+```
+module load 2021
+module load Python/3.9.5-GCCcore-10.3.0
+module load pyproj/3.1.0-GCCcore-10.3.0
+
+# one-time installation of Python modules
+pip install cdsapi
+pip install numpy xarray netcdf4 matplotlib # some are already present
+pip install numba "dask[complete]" progress
+
+# edit create_dales_input.py script to specify domain and location of output files
+python3 ./create_dales_input.py
+```
