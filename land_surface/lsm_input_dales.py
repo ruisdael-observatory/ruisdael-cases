@@ -1,30 +1,22 @@
-import matplotlib.pyplot as pl
+#import matplotlib.pyplot as plt
 import netCDF4 as nc4
 import numpy as np
 import sys, os
+
 
 class LSM_input_DALES:
     """
     Data structure for the required input for the new LSM
     """
-    def __init__(self, itot, jtot, ktot, debug=False):
+    def __init__(self, itot, jtot, ktot, lu_types, debug=False):
         dtype_float = np.float64
         dtype_int   = np.int32
+        dtype_str   = object
 
         self.itot = itot
         self.jtot = jtot
         self.ktot = ktot
-
-        # List of fields which are written to the binary input files for DALES
-        self.fields = [
-                'c_lv', 'c_hv', 'c_bs', 'c_aq',
-                'z0m_lv', 'z0m_hv', 'z0m_bs', 'z0m_aq',
-                'z0h_lv', 'z0h_hv', 'z0h_bs', 'z0h_aq',
-                'lambda_s_lv', 'lambda_s_hv', 'lambda_s_bs',
-                'lambda_us_lv', 'lambda_us_hv', 'lambda_us_bs',
-                'lai_lv', 'lai_hv' ,'rs_min_lv', 'rs_min_hv' ,'rs_min_bs',
-                'ar_lv' ,'br_lv', 'ar_hv', 'br_hv', 'gD', 'tskin_aq',
-                'index_soil', 't_soil', 'theta_soil']
+        self.nlu  = len(lu_types)
 
         # Grid
         self.x = np.zeros(itot, dtype=dtype_float)
@@ -37,68 +29,95 @@ class LSM_input_DALES:
         self.t_soil     = np.zeros((ktot, jtot, itot), dtype=dtype_float)
         self.theta_soil = np.zeros((ktot, jtot, itot), dtype=dtype_float)
         self.index_soil = np.zeros((ktot, jtot, itot), dtype=dtype_int)
+        fields = ['index_soil', 't_soil', 'theta_soil']
+        
+        # LU types
+        self.luname  = np.empty(len(lu_types), dtype=dtype_str)
+        #fields.append('luname')
+        self.lushort = np.empty(len(lu_types), dtype=dtype_str)
+        #fields.append('lushort')
+        self.lveg    = np.empty(len(lu_types), dtype=dtype_str)
+        #fields.append('lveg')
+        self.ilu     = np.zeros(len(lu_types), dtype=dtype_int)
+        #fields.append('ilu')
 
-        # Sub-grid fraction of vegetation (-)
-        self.c_lv = np.zeros((jtot, itot), dtype=dtype_float)
-        self.c_hv = np.zeros((jtot, itot), dtype=dtype_float)
-        self.c_bs = np.zeros((jtot, itot), dtype=dtype_float)
-        self.c_aq = np.zeros((jtot, itot), dtype=dtype_float)
+        # Sub-grid fraction of LU type (-)
+        zeros = np.zeros((jtot, itot), dtype=dtype_float)
+        for lu in lu_types:
+            ## LU cover (-)
+            varname = 'c_'+lu
+            setattr(self, varname, zeros) 
+            fields.append(varname)
+            ## Roughness lenghts momentum (m)
+            varname = 'z0m_'+lu
+            setattr(self, varname, zeros) 
+            fields.append(varname)
+            ## Roughness lenghts heat/scalars (m)
+            varname = 'z0h_'+lu
+            setattr(self, varname, zeros) 
+            fields.append(varname)
 
-        # Roughness lenghts momentum (m)
-        self.z0m_lv = np.zeros((jtot, itot), dtype=dtype_float)
-        self.z0m_hv = np.zeros((jtot, itot), dtype=dtype_float)
-        self.z0m_bs = np.zeros((jtot, itot), dtype=dtype_float)
-        self.z0m_aq = np.zeros((jtot, itot), dtype=dtype_float)
+        for lu in lu_types:
+            # skip for non-vegetation types
+            if not lu_types[lu]['lveg']: continue 
+            ## Leaf Area Index (LAI, -)
+            varname = 'lai_'+lu
+            setattr(self, varname, zeros) 
+            fields.append(varname)
+            ## `a` and `b` coefficients root profile
+            varname = 'ar_'+lu
+            setattr(self, varname, zeros) 
+            fields.append(varname)
+            varname = 'br_'+lu
+            setattr(self, varname, zeros) 
+            fields.append(varname)
 
-        # Roughness lenghts heat/scalars (m)
-        self.z0h_lv = np.zeros((jtot, itot), dtype=dtype_float)
-        self.z0h_hv = np.zeros((jtot, itot), dtype=dtype_float)
-        self.z0h_bs = np.zeros((jtot, itot), dtype=dtype_float)
-        self.z0h_aq = np.zeros((jtot, itot), dtype=dtype_float)
+        for lu in lu_types:
+            # skip for water surfaces
+            if lu == 'aq': continue 
+            ## Conductivity skin layer (stable conditions)
+            varname = 'lambda_s_'+lu
+            setattr(self, varname, zeros) 
+            fields.append(varname)
+            ## Conductivity skin layer (unstable conditions)
+            varname = 'lambda_us_'+lu
+            setattr(self, varname, zeros) 
+            fields.append(varname)
+            ## Minimum vegetation (lv, hv) or soil resistance (s m-1)
+            varname = 'rs_min_'+lu
+            setattr(self, varname, zeros) 
+            fields.append(varname)
 
-        # Conductivity skin layer (stable conditions)
-        self.lambda_s_lv = np.zeros((jtot, itot), dtype=dtype_float)
-        self.lambda_s_hv = np.zeros((jtot, itot), dtype=dtype_float)
-        self.lambda_s_bs = np.zeros((jtot, itot), dtype=dtype_float)
-
-        # Conductivity skin layer (unstable conditions)
-        self.lambda_us_lv = np.zeros((jtot, itot), dtype=dtype_float)
-        self.lambda_us_hv = np.zeros((jtot, itot), dtype=dtype_float)
-        self.lambda_us_bs = np.zeros((jtot, itot), dtype=dtype_float)
-
-        # Leaf Area Index (LAI, -)
-        self.lai_lv = np.zeros((jtot, itot), dtype=dtype_float)
-        self.lai_hv = np.zeros((jtot, itot), dtype=dtype_float)
-
-        # Minimum vegetation (lv, hv) or soil resistance (s m-1)
-        self.rs_min_lv = np.zeros((jtot, itot), dtype=dtype_float)
-        self.rs_min_hv = np.zeros((jtot, itot), dtype=dtype_float)
-        self.rs_min_bs = np.zeros((jtot, itot), dtype=dtype_float)
-
-        # `a` and `b` coefficients root profile
-        self.ar_lv = np.zeros((jtot, itot), dtype=dtype_float)
-        self.br_lv = np.zeros((jtot, itot), dtype=dtype_float)
-
-        self.ar_hv = np.zeros((jtot, itot), dtype=dtype_float)
-        self.br_hv = np.zeros((jtot, itot), dtype=dtype_float)
-
-        # TMP TMP TMP TMP
+        # XXX
         self.tskin_aq = np.zeros((jtot, itot), dtype=dtype_float)
+        fields.append('tskin_aq')
 
         # gD-coefficient for high vegetation
         self.gD = np.zeros((jtot, itot), dtype=dtype_float)
-
+        fields.append('gD')
+ 
+        # List of fields which are written to the binary input files for DALES
+        self.fields = sorted(fields)
+ 
         # Bonus, for offline LSM (not written to DALES input)
-        self.type_lv = np.zeros((jtot, itot), dtype=dtype_int)
-        self.type_hv = np.zeros((jtot, itot), dtype=dtype_int)
-        self.type_bs = np.zeros((jtot, itot), dtype=dtype_int)
+        for lu in lu_types:
+            ## LU type (-)
+            varname = 'type_'+lu
+            setattr(self, varname, zeros) 
+
+        # if debug:
+        #     # Init all values at a large negative number
+        #     for field in self.fields:
+        #         data = getattr(self, field)
+        #         data[:] = -1e9
 
         if debug:
-            # Init all values at large negative number
+            # Init all values at NaN
             for field in self.fields:
                 data = getattr(self, field)
-                data[:] = -1e9
-
+                if data.dtype == dtype_int:
+                    continue
+                data[:] = np.nan
 
     def save_binaries(self, nprocx, nprocy, exp_id, path='.'):
         """
@@ -125,6 +144,7 @@ class LSM_input_DALES:
                         data = getattr(self, field)
                         ss = ss2 if data.ndim==2 else ss3
                         data[ss].tofile(f)
+        return()
 
 
     def save_netcdf(self, nc_file):
@@ -133,40 +153,75 @@ class LSM_input_DALES:
         """
         nc = nc4.Dataset(nc_file, 'w')
 
-        dimx = nc.createDimension('x', self.itot)
-        dimy = nc.createDimension('y', self.jtot)
-        dimz = nc.createDimension('z', self.ktot)
+        nc.createDimension('x', self.itot)
+        nc.createDimension('y', self.jtot)
+        nc.createDimension('z', self.ktot)
+        nc.createDimension('nlu', self.nlu)
+        nc.createDimension('str2', size=2)
+        nc.createDimension('str32', size=32)
+        nc.createDimension('str1', size=1)
 
-        var_x = nc.createVariable('x', np.float, 'x')
-        var_y = nc.createVariable('y', np.float, 'y')
+
+        var_x = nc.createVariable('x', float, 'x')
+        var_y = nc.createVariable('y', float, 'y')
 
         var_x[:] = self.x[:]
         var_y[:] = self.y[:]
 
         # Fields needed for offline LSM:
-        bonus = ['type_lv', 'type_hv', 'type_bs', 'lon', 'lat']
+        bonus = ['type_lv', 'type_hv', 'type_bs', 'type_aq', 'type_ap', 'lon', 'lat']
 
         for field in self.fields + bonus:
             data = getattr(self, field)
             dims = ['y', 'x'] if data.ndim == 2 else ['z', 'y', 'x']
-            var  = nc.createVariable(field, np.float, dims)
+            var  = nc.createVariable(field, float, dims)
             var[:] = data[:]
 
-        nc.close()
+        luname = nc4.stringtochar(np.array(self.luname, 'S32'))
+        var_lun = nc.createVariable('luname', 
+                                    datatype='S1', 
+                                    dimensions=('nlu','str32'))
+        var_lun[:,:] = luname
 
+        lushort = nc4.stringtochar(np.array(self.lushort,'S2'))
+        var_lus = nc.createVariable('lushort', 
+                                    datatype='S1', 
+                                    dimensions=('nlu','str2'))
+        var_lus[:,:] = lushort
+        
+        lveg    = nc4.stringtochar(np.array([str(b)[0] for b in self.lveg],'S1'))
+        var_lveg = nc.createVariable('lveg',
+                                     datatype='S1',
+                                     dimensions=('nlu','str1'))
+        var_lveg[:,:] = lveg
+
+        ilu     = np.array(self.ilu, dtype=int)
+        var_ilu = nc.createVariable('ilu',int,('nlu',))
+        var_ilu[:] = ilu
+        
+        nc.close()
+ 
+        return()
 
 
 if __name__ == '__main__':
     """ Just for testing... """
 
-    lsm_input = LSM_input_DALES(itot=432, jtot=288, ktot=4)
-    lsm_input.x[:] = np.arange(432)
-    lsm_input.y[:] = np.arange(288)
+    from landuse_types import lu_types_basic
+
+    itot = 128
+    jtot = 128
+    kmax_soil = 4
+    lu_types = lu_types_basic
+
+    lsm_input = LSM_input_DALES(itot=itot, jtot=jtot, ktot=kmax_soil, lu_types=lu_types)
+    lsm_input.x[:] = np.arange(itot)
+    lsm_input.y[:] = np.arange(itot)
 
     # ... set values ...
 
     # Save DALES input:
-    lsm_input.save_binaries(nprocx=4, nprocy=2, exp_id=1, path='tmp/')
+    lsm_input.save_binaries(nprocx=4, nprocy=2, exp_id=8, path='tmp/')
 
     # Save NetCDF output (for e.g. visualisation):
     lsm_input.save_netcdf('tmp/test.nc')
