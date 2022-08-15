@@ -160,3 +160,65 @@ lu_types_crop = {'lv':lv,
                  'su':su,
                  'wh':wh,
                  } 
+
+
+### DEPAC LU types
+# define lu type characteristics
+ara = {'lu_long':'Arable land', 
+      'lu_short':'ara', 
+      'lu_ids': np.array([11]),  
+      'lveg':True}
+crp = {'lu_long':'Permanent crops', 
+      'lu_short':'crp', 
+      'lu_ids': np.array([6,7,8]),
+       'lveg':True}
+fcd = {'lu_long':'Coniferous deciduous forest', 
+      'lu_short':'fcd', 
+      'lu_ids': np.array([999]),
+      'lveg':True}
+fce = {'lu_long':'Coniferous evergreen forest', 
+      'lu_short':'fce', 
+      'lu_ids': np.array([2,3]),
+      'lveg':True}
+fbd = {'lu_long':'Broadleaf deciduous forest', 
+      'lu_short':'fbd', 
+      'lu_ids': np.array([1,4,5,27]),
+      'lveg':True}
+fbe = {'lu_long':'Broadleaf evergreen forest', 
+      'lu_short':'fbe', 
+      'lu_ids': np.array([999]),
+      'lveg':True}
+aqu = {'lu_long':'Aquatic', 
+      'lu_short':'aqu', 
+      'lu_ids': np.array([14,15,16,17,18,19]),
+      'lveg':False}
+brn = {'lu_long':'Barren land', 
+      'lu_short':'brn', 
+      'lu_ids': np.array([12,21,28]),
+      'lveg':False}
+sem = {'lu_long':'Semi-natural vegetation', 
+      'lu_short':'sem', 
+      'lu_ids': np.array([9,13,26]),
+      'lveg':True}
+grs = {'lu_long':'Grassland', 
+      'lu_short':'grs', 
+      'lu_ids': np.array([10]),  
+      'lveg':True}
+urb = {'lu_long':'Urban', 
+      'lu_short':'urb', 
+      'lu_ids': np.array([20,22,23,24,25,29,30]),
+      'lveg':False}
+
+
+# set of land use types with 'buildings'
+lu_types_depac = {'ara':ara,
+                  'crp':crp, 
+                  'fcd':fcd, 
+                  'fce':fce,
+                  'fbd':fbd,
+                  'fbe':fbe,
+                  'aqu':aqu,
+                  'brn':brn,
+                  'sem':sem,
+                  'grs':grs,
+                  'urb':urb} 

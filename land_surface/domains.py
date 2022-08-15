@@ -32,7 +32,19 @@ ruisdael   = {'expname': 'ruisdael',
              'nprocy' : 12 
             }
 
+smalldomain = {'expname': 'smalldomain',
+            'x0' : 155000,
+            'y0' : 386000,
+            'itot' : 128,
+            'jtot' : 128,
+            'dx' : 50,
+            'dy' : 50,
+            'nprocx' : 4,
+            'nprocy' : 4
+            }
+
 domains = {'eindhoven': eindhoven,
+           'eindhoven_small': smalldomain,
            'test'     : test,
            'ruisdael' : ruisdael 
             }

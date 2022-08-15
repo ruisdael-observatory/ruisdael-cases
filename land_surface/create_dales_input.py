@@ -11,10 +11,10 @@ from vegetation_properties import ifs_vegetation, top10_to_ifs, top10_names
 from interpolate import interp_dominant, interp_soil, Interpolate_era5
 from spatial_transforms import proj4_rd #, proj4_hm
 from bofek2012 import BOFEK_info
-from lsm_input_dales_v2 import LSM_input_DALES
+from lsm_input_dales import LSM_input_DALES
 from era5_soil import init_theta_soil, calc_theta_rel #, download_era5_soil
 from domains import domains
-from landuse_types import lu_types_basic, lu_types_build, lu_types_crop
+from landuse_types import lu_types_basic, lu_types_build, lu_types_crop, lu_types_depac
 
 
 def init_dales_grid(domain, ktot_soil, lutypes):
@@ -737,7 +737,8 @@ def process_input(lu_types, domain, output_path, start_date, exp_id, ktot_soil):
                       nprocy=4)
      
     if True:
-        plotvars = ['c_lv','c_hv','c_ap','c_bs','c_ba','c_ma','c_po','c_su','c_wh']
+        # plotvars = ['c_lv', 'c_hv', 'c_ap','z0m_hv']
+        plotvars = ['c_hv', 'z0m_hv', 'z0h_hv', 'lai_hv']
         some_plots(lsm_input, plotvars)
 
     return lsm_input
@@ -751,28 +752,30 @@ if __name__ == "__main__":
     # -----------------------------
     # Path to directory with `BOFEK2012_010m.nc` and `top10nl_landuse_010m.nc`
     spatial_data_path = '//tsn.tno.nl/Data/sv/sv-059025_unix/ProjectData/ERP/Climate-and-Air-Quality/users/janssenrhh/landuse_soil'
-    lufile   = 'top10nl_landuse_010m_2017_detailed.nc'
-    #lufile   = 'top10nl_landuse_010m.nc'
+    # lufile   = 'top10nl_landuse_010m_2017_detailed.nc'
+    lufile   = 'top10nl_landuse_010m.nc'
     soilfile = 'BOFEK2012_010m.nc'
     
     # Output directory of DALES input files
     cwd = os.getcwd()
-    output_path = os.path.join(cwd, 'eindhoven')
+    output_path = os.path.join(cwd, 'eindhoven_small')
     
     # Start date/time of experiment
     start_date = datetime(year=2016, month=8, day=17, hour=4)
     
     # domain and domain decomposition definition    
-    domain = domains['eindhoven']
+    domain = domains['eindhoven_small']
                     
     # land use types
-    #lu_types = lu_types_basic
-    #lu_types = lu_types_build
-    lu_types  = lu_types_crop
+    lu_types = lu_types_basic
+    # lu_types = lu_types_build
+    #lu_types  = lu_types_crop
+    #lu_types  = lu_types_depac
+
 
 
     # experiment ID
-    exp_id = 21
+    exp_id = 1
 
     # number of soil layers
     ktot_soil = 4 
