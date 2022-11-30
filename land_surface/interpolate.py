@@ -1,7 +1,6 @@
 import numpy as np
 from numba import jit, prange
 from progress.bar import Bar
-import sys
 
 @jit(nopython=True, nogil=True, fastmath=True)
 def _nearest(array, value, size):

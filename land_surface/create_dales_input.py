@@ -17,9 +17,9 @@ from domains import domains
 from landuse_types import lu_types_basic, lu_types_build, lu_types_crop, lu_types_depac
 
 
-def init_dales_grid(domain, ktot_soil, lutypes):
+def init_dales_grid(domain, ktot_soil, lutypes, parnames):
     """
-    Initialise a land surface grid with the properties of the DALES grid
+    Initialise a land surface grid with the dimensions of the DALES grid
     
     Parameters
     ----------
@@ -35,7 +35,7 @@ def init_dales_grid(domain, ktot_soil, lutypes):
     lsm_input : LSM_input_DALES 
         Class containing Dales input parameters for all LU types.
     nn_dominant : int
-        DESCRIPTION.
+        Number of grid points (+/-) used in "dominant" interpolation method.
     nblockx : int
         Number of blocks in x-direction.
     nblocky : int
@@ -66,7 +66,7 @@ def init_dales_grid(domain, ktot_soil, lutypes):
     lon2d, lat2d = proj4_rd(x2d_rd, y2d_rd, inverse=True)
     
     # Instance of `LSM_input` class, which defines/writes the DALES LSM input:
-    lsm_input = LSM_input_DALES(itot, jtot, ktot_soil, lutypes, debug=True)
+    lsm_input = LSM_input_DALES(itot, jtot, ktot_soil, lutypes, parnames, debug=False)
     
     # Save lat/lon coordinates
     lsm_input.lat[:,:] = lat2d
@@ -78,7 +78,7 @@ def init_dales_grid(domain, ktot_soil, lutypes):
     return(lsm_input, nn_dominant, nblockx, nblocky)
 
 
-def get_era5_data(era5_path, leipdir, andir, fcdir):
+def get_era5_data(andir, fcdir):
     """
     Get ERA5 soil and sea surface properties & variables:
     soil temperature
@@ -94,10 +94,6 @@ def get_era5_data(era5_path, leipdir, andir, fcdir):
 
     Parameters
     ----------
-    era5_path : str
-        DESCRIPTION.
-    leipdir : str
-        DESCRIPTION.
     andir : str
         DESCRIPTION.
     fcdir : str
@@ -122,7 +118,7 @@ def get_era5_data(era5_path, leipdir, andir, fcdir):
     
     # Download ERA5 data for initialisation soil
     #TODO: test
-    #download_era5_soil(start_date, era5_path)
+    #download_era5_soil(start_date, andir)
     
     #get variables:
     #      'sea_surface_temperature', 'soil_temperature_level_1',
@@ -134,27 +130,27 @@ def get_era5_data(era5_path, leipdir, andir, fcdir):
     
     
     #sst: sea surface temperature
-    era5_sst = xr.open_dataset('%s/%s/%04d/sstk_%04d%02d%02d_1h.nc' %(leipdir, fcdir, start_date.year, start_date.year, start_date.month, start_date.day) )
+    era5_sst = xr.open_dataset('%s/%04d/sstk_%04d%02d%02d_1h.nc' %(fcdir, start_date.year, start_date.year, start_date.month, start_date.day) )
     #skt: skin temperature
-    era5_skt = xr.open_dataset('%s/%s/%04d/skt_%04d%02d%02d_1h.nc' %(leipdir, fcdir, start_date.year, start_date.year, start_date.month, start_date.day) )
+    era5_skt = xr.open_dataset('%s/%04d/skt_%04d%02d%02d_1h.nc' %(fcdir, start_date.year, start_date.year, start_date.month, start_date.day) )
     #swfl1-4: soil water volumetric level
-    era5_swvl1 = xr.open_dataset('%s/%s/%04d/swvl1_%04d%02d%02d_1h.nc' %(leipdir, fcdir, start_date.year, start_date.year, start_date.month, start_date.day) )
-    era5_swvl2 = xr.open_dataset('%s/%s/%04d/swvl2_%04d%02d%02d_1h.nc' %(leipdir, fcdir, start_date.year, start_date.year, start_date.month, start_date.day) )
-    era5_swvl3 = xr.open_dataset('%s/%s/%04d/swvl3_%04d%02d%02d_1h.nc' %(leipdir, fcdir, start_date.year, start_date.year, start_date.month, start_date.day) )
-    era5_swvl4 = xr.open_dataset('%s/%s/%04d/swvl4_%04d%02d%02d_1h.nc' %(leipdir, fcdir, start_date.year, start_date.year, start_date.month, start_date.day) )
+    era5_swvl1 = xr.open_dataset('%s/%04d/swvl1_%04d%02d%02d_1h.nc' %(fcdir, start_date.year, start_date.year, start_date.month, start_date.day) )
+    era5_swvl2 = xr.open_dataset('%s/%04d/swvl2_%04d%02d%02d_1h.nc' %(fcdir, start_date.year, start_date.year, start_date.month, start_date.day) )
+    era5_swvl3 = xr.open_dataset('%s/%04d/swvl3_%04d%02d%02d_1h.nc' %(fcdir, start_date.year, start_date.year, start_date.month, start_date.day) )
+    era5_swvl4 = xr.open_dataset('%s/%04d/swvl4_%04d%02d%02d_1h.nc' %(fcdir, start_date.year, start_date.year, start_date.month, start_date.day) )
     
     #stl1-4: soil temperature level
-    era5_stl1 = xr.open_dataset('%s/%s/%04d/stl1_%04d%02d%02d_1h.nc' %(leipdir, fcdir, start_date.year, start_date.year, start_date.month, start_date.day) )
-    era5_stl2 = xr.open_dataset('%s/%s/%04d/stl2_%04d%02d%02d_1h.nc' %(leipdir, fcdir, start_date.year, start_date.year, start_date.month, start_date.day) )
-    era5_stl3 = xr.open_dataset('%s/%s/%04d/stl3_%04d%02d%02d_1h.nc' %(leipdir, fcdir, start_date.year, start_date.year, start_date.month, start_date.day) )
-    era5_stl4 = xr.open_dataset('%s/%s/%04d/stl4_%04d%02d%02d_1h.nc' %(leipdir, fcdir, start_date.year, start_date.year, start_date.month, start_date.day) )
+    era5_stl1 = xr.open_dataset('%s/%04d/stl1_%04d%02d%02d_1h.nc' %(fcdir, start_date.year, start_date.year, start_date.month, start_date.day) )
+    era5_stl2 = xr.open_dataset('%s/%04d/stl2_%04d%02d%02d_1h.nc' %(fcdir, start_date.year, start_date.year, start_date.month, start_date.day) )
+    era5_stl3 = xr.open_dataset('%s/%04d/stl3_%04d%02d%02d_1h.nc' %(fcdir, start_date.year, start_date.year, start_date.month, start_date.day) )
+    era5_stl4 = xr.open_dataset('%s/%04d/stl4_%04d%02d%02d_1h.nc' %(fcdir, start_date.year, start_date.year, start_date.month, start_date.day) )
     
     
     #lsm: land sea mask
-    era5_lsm = xr.open_dataset('%s/%s/lsm.nc' %(leipdir, andir) )
+    era5_lsm = xr.open_dataset('%s/lsm.nc' %(andir) )
     
     #slt: soil type
-    era5_slt = xr.open_dataset('%s/%s/slt.nc' %(leipdir, andir) )
+    era5_slt = xr.open_dataset('%s/slt.nc' %(andir) )
 
     era5_stl  = {'era5_stl1': era5_stl1,
                  'era5_stl2': era5_stl2,
@@ -241,8 +237,6 @@ def process_era5_soiltemp(lsm_input, era5_stl, era5_swvl, era5_sst, era5_skt, er
     e5_soil['slt']   = era5_slt['slt'].interp_like(e5_soil, method='nearest').fillna(0)
     
     # Read ERA5 soil
-    #e5_soil = xr.open_dataset('{0}/{1:04d}{2:02d}{3:02d}_{4:02d}_soil.nc'.format(
-    #        era5_path, start_date.year, start_date.month, start_date.day, start_date.hour))
     e5_soil = e5_soil.reindex(latitude=e5_soil.latitude[::-1])
     e5_soil = e5_soil.squeeze()
     
@@ -285,12 +279,12 @@ def process_era5_soilmoist(lsm_input, e5_soil):
     
     interpolate_era5 = create_interpolator(lsm_input, e5_soil)
     # Interpolate SST
-    # What to do with LES grid points where ERA5's SST has no data? Extrapolate in space?
+    # TODO: What to do with LES grid points where ERA5's SST has no data? Extrapolate in space?
     # For now, use skin temperature where SST's are missing....
-    sst = e5_soil.sst.values
-    tsk = e5_soil.skt.values
-    sst[np.isnan(sst)] = tsk[np.isnan(sst)]
-    interpolate_era5.interpolate(lsm_input.tskin_aq[:,:], sst)
+    # sst = e5_soil.sst.values
+    # tsk = e5_soil.skt.values
+    # sst[np.isnan(sst)] = tsk[np.isnan(sst)]
+    # interpolate_era5.interpolate(lsm_input.tskin_aq[:,:], sst)
     
     # Calculate relative soil moisture content ERA5
     theta_era = np.stack(
@@ -437,11 +431,13 @@ def process_top10NL_map(lufile, lutypes, lsm_input, nn_dominant, nblockx, nblock
     luname  = [x[1]['lu_long'] for x in lu_types.items()] 
     lushort = [x[1]['lu_short'] for x in lu_types.items()] 
     lveg    = [x[1]['lveg'] for x in lu_types.items()] 
+    laqu    = [x[1]['laqu'] for x in lu_types.items()] 
     ilu     = np.arange(len(lu_types)) + 1
     
     setattr(lsm_input, 'luname', luname)
     setattr(lsm_input, 'lushort', lushort)
     setattr(lsm_input, 'lveg', lveg)
+    setattr(lsm_input, 'laqu', laqu)
     setattr(lsm_input, 'ilu', ilu)
 
     # set LU cover for each grid cell    
@@ -454,52 +450,59 @@ def process_top10NL_map(lufile, lutypes, lsm_input, nn_dominant, nblockx, nblock
                 nn=nn_dominant, 
                 nblockx=nblockx, nblocky=nblocky, 
                 dx=domain['dx'])
+        if -1 in np.unique(lutypes[lu]['lu_domid']):
+            lutypes[lu]['lu_domid'][lutypes[lu]['lu_domid']==-1] = np.unique(lutypes[lu]['lu_domid'])[1]
+            print('filling domid for', lu)
+            #TODO: smarter way to fill missing values
         setattr(lsm_input, 'c_'+lu, lu_types[lu]['lu_frac']) 
     
-    #set dominant LU id for each LU type
-    lu_low     = lutypes['lv']['lu_domid']
-    lu_high    = lutypes['hv']['lu_domid']
-    lu_water   = lutypes['aq']['lu_domid']
-    lu_asphalt = lutypes['ap']['lu_domid']
-    lu_baresoil= lutypes['bs']['lu_domid']
-    try:
-        lu_build   = lutypes['bu']['lu_domid']
-    except:
-        print('')
-            
-#    # Set vegetation fraction over Germany
-# TODO apply to lsm_input 
-#    de_mask = (lu_low==-1)&(lu_high==-1)&(lu_water==-1)&(lu_asphalt==-1)
-#    frac_low  [de_mask] = 0.7
-#    frac_high [de_mask] = 0.2
-#    frac_water[de_mask] = 0.0
-#    frac_asphalt[de_mask] = 0.0
+    # #set dominant LU id for each LU type
+    # for lu in lutypes.keys():
+    #     domid = lutypes[lu]['lu_domid']
+        
+#     lu_low     = lutypes['lv']['lu_domid']
+#     lu_high    = lutypes['hv']['lu_domid']
+#     lu_water   = lutypes['aq']['lu_domid']
+#     lu_asphalt = lutypes['ap']['lu_domid']
+#     lu_baresoil= lutypes['bs']['lu_domid']
+#     try:
+#         lu_build   = lutypes['bu']['lu_domid']
+#     except:
+#         print('')
     
-    # Set default values low and high vegetation, where missing
-    lu_low [lu_low  == -1] = 10   # 10 = grass
-    lu_high[lu_high == -1] = 3    # 3  = mixed forest
-    lu_asphalt[lu_asphalt == -1] = 20    # 20 = paved road
-    lu_baresoil[lu_baresoil == -1] = 28  # 28 = fallow land
-    lu_water[lu_water == -1] = 14        # 14 = water way 
-    try:
-        lu_build[lu_build == -1] = 29    # 29 = buildings
-    except:
-        print('')
+# #    # Set vegetation fraction over Germany
+# # TODO apply to lsm_input 
+# #    de_mask = (lu_low==-1)&(lu_high==-1)&(lu_water==-1)&(lu_asphalt==-1)
+# #    frac_low  [de_mask] = 0.7
+# #    frac_high [de_mask] = 0.2
+# #    frac_water[de_mask] = 0.0
+# #    frac_asphalt[de_mask] = 0.0
 
-    lutypes['lv']['lu_domid'] = lu_low
-    lutypes['hv']['lu_domid'] = lu_high
-    lutypes['aq']['lu_domid'] = lu_water
-    lutypes['ap']['lu_domid'] = lu_asphalt
-    lutypes['bs']['lu_domid'] = lu_baresoil    
-    try:
-        lutypes['bu']['lu_domid'] = lu_build    
-    except:
-        print('')
+#     # Set default values low and high vegetation, where missing
+#     lu_low [lu_low  == -1] = 10   # 10 = grass
+#     lu_high[lu_high == -1] = 3    # 3  = mixed forest
+#     lu_asphalt[lu_asphalt == -1] = 20    # 20 = paved road
+#     lu_baresoil[lu_baresoil == -1] = 28  # 28 = fallow land
+#     lu_water[lu_water == -1] = 14        # 14 = water way 
+#     try:
+#         lu_build[lu_build == -1] = 29    # 29 = buildings
+#     except:
+#         print('')
+
+#     lutypes['lv']['lu_domid'] = lu_low
+#     lutypes['hv']['lu_domid'] = lu_high
+#     lutypes['aq']['lu_domid'] = lu_water
+#     lutypes['ap']['lu_domid'] = lu_asphalt
+#     lutypes['bs']['lu_domid'] = lu_baresoil    
+#     try:
+#         lutypes['bu']['lu_domid'] = lu_build    
+#     except:
+#         print('')
 
     return lsm_input, lutypes
 
 
-def init_lutypes_ifs(lsm_input, lu_dict ):
+def init_lutypes_ifs(lsm_input, lu_dict, parnames_lsm ):
     """Assign surface properties to DALES land use types based on ECMWF
        lookup table.    
 
@@ -517,90 +520,170 @@ def init_lutypes_ifs(lsm_input, lu_dict ):
 
     """
     #TODO: generalise for arbitrary number of LU types
-        
+    # all parameters should be available for all LU types
+    # selection can be made in Dales / with an ugly hack in a separate function    
+    
+    
     #
     # Init land use
     #
-    shape = lu_dict['lv']['lu_frac'].shape
+    shape = (lsm_input.jtot, lsm_input.itot)
     for lu in lu_dict.keys():
-        if lu == 'aq': continue
         print('\n processing', lu_dict[lu]['lu_long'])
-        z0m      = np.full(shape, np.nan)
-        z0h      = np.full(shape, np.nan)
-        lambda_s = np.full(shape, np.nan)
-        lambda_us= np.full(shape, np.nan)
-        rs_min   = np.full(shape, np.nan)
-        lai      = np.full(shape, np.nan) 
-        ar       = np.full(shape, np.nan)
-        br       = np.full(shape, np.nan) 
-        cover    = lu_dict[lu]['lu_frac']
-        lutype   = np.full(shape, np.nan)
-        gD       = np.full(shape, np.nan)
+        for parname in parnames_lsm:
+            if parname == 'cover' or parname == 'c_veg':
+                parfield = lu_dict[lu]['lu_frac'].copy()
+            else:
+                parfield = np.full(shape, np.nan)
+                # parfield = np.full(shape, 0.0)
     
-        for vt in lu_dict[lu]['lu_ids']:
+            for vt in lu_dict[lu]['lu_ids']:
+                iv = top10_to_ifs[vt]     # Index in ECMWF lookup table
+                mask = (lu_dict[lu]['lu_domid'] == vt)
+              
+                if parname == 'cover':
+                    print('LU type TOP10:', top10_names[vt])
+                    # parfield[mask] *= 1
+                    parfield[mask] *= ifs_vegetation.c_veg[iv]
+                elif parname == 'c_veg':
+                    # TODO Note that cveg < cover; assign cover-cveg to bare soil
+                    parfield[mask] *= ifs_vegetation.c_veg[iv]
+                elif parname == 'lutype':                  
+                    parfield[mask] = iv
+                elif parname == 'tskin':
+                    # TODO: assign tskin only for water surfaces
+                    parfield[mask] = 273.15
+                else:
+                    if parname =='ar':
+                        parname_ifs = 'a_r'
+                    elif parname =='br':
+                        parname_ifs = 'b_r'
+                    else:
+                        parname_ifs = parname
+                    parfield[mask] = getattr(ifs_vegetation, parname_ifs) [iv]
 
-            iv = top10_to_ifs[vt]     # Index in ECMWF lookup table
-            mask = (lu_dict[lu]['lu_domid'] == vt)
-        
-            print('LU type TOP10:', top10_names[vt])
-            #print('LU type IFS  ', ifs_vegetation.name[iv])
-
-            z0m      [mask] = ifs_vegetation.z0m      [iv]
-            #print('z0m', ifs_vegetation.z0m      [iv])
-            z0h      [mask] = ifs_vegetation.z0h      [iv]
-            lambda_s [mask] = ifs_vegetation.lambda_s [iv]
-            lambda_us[mask] = ifs_vegetation.lambda_us[iv]
-            rs_min   [mask] = ifs_vegetation.rs_min   [iv]
-            lai      [mask] = ifs_vegetation.lai      [iv]
-            if lu == 'ap': lai[mask] = 0
-            ar       [mask] = ifs_vegetation.a_r      [iv]
-            br       [mask] = ifs_vegetation.b_r      [iv]
-        
-            if lu == 'hv':
-                gD[mask] = ifs_vegetation.gD[iv]
-            # Multiply grid point coverage with vegetation type coverage
-            if lu == 'bs': continue
-            cover[mask] *= ifs_vegetation.c_veg[iv]
-            # Bonus, for offline LSM:
-            lutype[mask] = iv
+                # Multiply grid point coverage with vegetation type coverage
+                #if lu == 'bs': continue
+                #cover[mask] *= ifs_vegetation.c_veg[iv]
             
-        setattr(lsm_input, 'z0m_'+lu, z0m)  
-        setattr(lsm_input, 'z0h_'+lu, z0h)   
-        setattr(lsm_input, 'lambda_s_'+lu, lambda_s)   
-        setattr(lsm_input, 'lambda_us_'+lu, lambda_us)   
-        setattr(lsm_input, 'rs_min_'+lu, rs_min)   
-        setattr(lsm_input, 'lai_'+lu, lai)   
-        setattr(lsm_input, 'ar_'+lu, ar)   
-        setattr(lsm_input, 'br_'+lu, br)   
-        setattr(lsm_input, 'c_'+lu, cover)   
-        setattr(lsm_input, 'type_'+lu, lutype)  
-        if lu == 'hv':
-            setattr(lsm_input, 'gD', gD)   
+            setattr(lsm_input, '_'.join([parname, lu]), parfield)
+
+    totcover = calc_totcover(lsm_input, lu_types, 'cover')
+    setattr(lsm_input, 'cover_tot', totcover)   
+
+    totcveg = calc_totcover(lsm_input, lu_types, 'c_veg')
+    setattr(lsm_input, 'c_veg_tot', totcveg)   
+    
+    # TODO: more consistent way to check for LU type with bare soil
+    bs_name = [k for k in lu_types.keys() if 'bar' in lu_types[k]['lu_long'].lower()][0] 
+    lsm_input = fill_bare_soil(lsm_input, bs_name=bs_name)    
+    
+    #recalculate
+    totcover = calc_totcover(lsm_input, lu_types, 'cover')
+    setattr(lsm_input, 'cover_tot', totcover) 
+    
+    totcveg = calc_totcover(lsm_input, lu_types, 'c_veg')
+    setattr(lsm_input, 'c_veg_tot', totcveg) 
+    
+    return lsm_input 
 
 
-    #
-    # Init bare soil (bs)
-    #
-    iv = 7
+def calc_totcover(lsm_input, lu_types, ctype):
+    '''
+    Calculate sum over cover of individual LU types to check if it sums up to 1
+
+    Parameters
+    ----------
+    lsm_input : LSM_input_DALES 
+        Class containing Dales input parameters for all LU types.
+    lu_types : dict
+        LU type properties.
+    ctype : str
+        LU cover type to be summed.
+
+    Returns
+    -------
+    totcover : np.array
+        Total LU cover.
+
+    '''
+    covers = [ctype + '_' + s for s in lu_types.keys()]
+    totcover = np.zeros([lsm_input.jtot,lsm_input.itot])
+    for c in covers:
+        totcover+=getattr(lsm_input, c)
+        
+    return totcover
+
+
+def fill_bare_soil(lsm_input, bs_name):
+    # assign remaining land cover to bare soil
+    cover     = getattr(lsm_input, 'cover_tot')
+    cover_bs0 = getattr(lsm_input, 'cover_'+bs_name)
+    # cover_bs1 = 1.-cover
     
-    lsm_input.rs_min_bs   [:,:] = 50.
+    cveg      = getattr(lsm_input, 'c_veg_tot')
+    cveg_bs0  = getattr(lsm_input, 'c_veg_'+bs_name)
+
+    # cover_bs = np.round(cover_bs0 + cover_bs1, 6)
+    cover_bs = np.round(1 - cveg + cover_bs0, 6)
+
     
-    # assign remaining land cover to bare soil 
-    lsm_input.c_bs[:,:] = 1
+    setattr(lsm_input, 'cover_'+bs_name, cover_bs)
+
+
+    return lsm_input
+    
+
+def init_lutypes_dep(lsm_input, lu_dict, parnames_dep, depfile ):
+    """Assign deposition parameter properties to DALES land use types.    
+
+    Parameters
+    ----------
+    lsm_input : LSM_input_DALES 
+        Class containing Dales input parameters for all LU types.
+    lu_dict : dict
+        LU type properties.
+    parnames_dep : list
+        Names of deposition parameters.
+    depfile : str
+        Name of file with deposition parameters per LU type.
+    Returns
+    -------
+    lsm_input : LSM_input_DALES 
+        Class containing Dales input parameters for all LU types.
+
+    """
+    # Select temperate climate zone and default vegetation type for now
+    climatezone = 'tmp'
+    vegetation  = 'def'
+
+    ds_dep = xr.open_dataset('{}/{}'.format(spatial_data_path, depfile))
+    ds_dep = ds_dep.sel(climatezone=climatezone)
+
+    shape = (lsm_input.jtot, lsm_input.itot)
     for lu in lu_dict.keys():
-        if lu == 'bs': continue
-        cover = getattr(lsm_input, 'c_'+lu)
-        print(lu, cover.mean())
-        lsm_input.c_bs[:,:] = lsm_input.c_bs[:,:] - cover
-    
-    # Bonus, for offline LSM:
-    lsm_input.type_bs[:,:] = iv
-    
-    #
-    # Init water (aq)
-    #
-    setattr(lsm_input, 'z0m_aq', np.full(shape, 0.1))
-    setattr(lsm_input, 'z0h_aq', np.full(shape, 0.1e-2))
+        print(' processing', lu_dict[lu]['lu_long'])
+        for parname in parnames_dep:
+            # dummy value to whole field
+            parfield = np.full(shape, np.nan)
+            # parfield = np.full(shape, 0.0)
+
+            # print(parname)
+
+            for vt in lu_dict[lu]['lu_ids']:
+                mask = (lu_dict[lu]['lu_domid'] == vt)
+                # TODO: get deposition parameters for each LU class
+                if len(ds_dep[parname].dims) == 1:
+                    value = ds_dep[parname].sel(landuse_vegetation='_'.join([lu,vegetation])).values
+                    if np.isnan(value):
+                        value = 0.0
+                    # print(value)
+                elif len(ds_dep[parname].dims) == 2:
+                    print('warning: parameter dependent on species')
+                    value = np.nan                
+                parfield[mask] = value
+                
+            setattr(lsm_input, '_'.join([parname, lu]), parfield)
 
     return lsm_input 
 
@@ -634,7 +717,7 @@ def write_output(lsm_input,
         lsm_input.save_binaries(nprocx=nprocx, nprocy=nprocy, exp_id=exp_id, path=output_path)
     
     if write_netcdf_output:
-        lsm_input.save_netcdf('%s\lsm.inp_%03d_%02dm.nc' %(output_path, exp_id, dx))
+        lsm_input.save_netcdf('%s\lsm.inp_%03d.nc' %(output_path, exp_id))
 
     return
 
@@ -666,7 +749,6 @@ def some_plots(lsm_input, plotvars):
                         coords=coords 
                        ) 
 
-    
     for plotvar in list(ds_lsm.variables):
         if plotvar == 'x' or plotvar == 'y': continue
         fig, ax = plt.subplots(1)
@@ -678,7 +760,7 @@ def some_plots(lsm_input, plotvars):
     return 
 
 
-def process_input(lu_types, domain, output_path, start_date, exp_id, ktot_soil):
+def process_input(lu_types, parnames, domain, output_path, andir, fcdir, start_date, exp_id, ktot_soil, lwrite, lplot):
     """Function that connects all processing steps:
     Init DALES grid
     Get ERA5 data
@@ -698,6 +780,10 @@ def process_input(lu_types, domain, output_path, start_date, exp_id, ktot_soil):
         Dales domain settings.
     output_path : str
         Dir to write output to.
+    andir : str
+        Dir with ECMWF analysis data.
+    fcdir : str
+        Dir with ECMWF forecast data.        
     start_date : datetime.datetime
         Time stamp of Dales run start.
     exp_id : int
@@ -711,13 +797,9 @@ def process_input(lu_types, domain, output_path, start_date, exp_id, ktot_soil):
         Class containing Dales input parameters for all LU types.
 
     """
-    lsm_input, nn_dominant, nblockx, nblocky = init_dales_grid(domain, ktot_soil, lu_types)
+    lsm_input, nn_dominant, nblockx, nblocky = init_dales_grid(domain, ktot_soil, lu_types, parnames)
 
-    era5_path = '//tsn.tno.nl/RA-Data/Express/ra_express_modasuscratch_unix/models/LEIP/europe_w30e70s5n75/ECMWF/od/ifs/0001/fc/sfc/F1280'
-    leipdir  = '//tsn.tno.nl/RA-Data/Express/ra_express_modasuscratch_unix/models/LEIP'
-    andir    = 'europe_w30e70s5n75/ECMWF/od/ifs/0001/an/sfc/F640/0000'
-    fcdir    = 'europe_w30e70s5n75/ECMWF/od/ifs/0001/fc/sfc/F1280'
-    era5_stl, era5_swvl, era5_lsm, era5_slt, era5_skt, era5_sst = get_era5_data(era5_path, leipdir, andir, fcdir)
+    era5_stl, era5_swvl, era5_lsm, era5_slt, era5_skt, era5_sst = get_era5_data(andir, fcdir)
 
     lsm_input, e5_soil,= process_era5_soiltemp(lsm_input, era5_stl, era5_swvl, era5_sst, era5_skt, era5_lsm, era5_slt)
     lsm_input, e5_soil, theta_rel, ds_vg = process_era5_soilmoist(lsm_input, e5_soil)
@@ -725,20 +807,24 @@ def process_input(lu_types, domain, output_path, start_date, exp_id, ktot_soil):
     lsm_input = process_soil_map(soilfile, lsm_input, nn_dominant, nblockx, nblocky, domain, theta_rel, ds_vg)
     lsm_input, lu_dict  = process_top10NL_map(lufile, lu_types, lsm_input, nn_dominant, nblockx, nblocky, domain)
 
-    lsm_input = init_lutypes_ifs(lsm_input, lu_dict )
+    lsm_input = init_lutypes_ifs(lsm_input, lu_dict, parnames_lsm )
+    # lsm_input = init_lutypes_dep(lsm_input, lu_dict, parnames_dep, depfile )
+
    
-    if False:
+    if lwrite:
         write_output(lsm_input, 
                       expname=domain['expname'],
                       dx=domain['dx'],
                       write_binary_output=False, 
                       write_netcdf_output=True,
-                      nprocx=4,
-                      nprocy=4)
+                      nprocx=1,
+                      nprocy=1)
      
-    if True:
-        # plotvars = ['c_lv', 'c_hv', 'c_ap','z0m_hv']
-        plotvars = ['c_hv', 'z0m_hv', 'z0h_hv', 'lai_hv']
+    if lplot:
+        plotvars = ['cover_'+ s for s in lu_types.keys()]
+        # plotvars = ['z0h_'+ s for s in lu_types.keys()]
+        # plotvars = [s+'_ara' for s in parnames]
+        plotvars.append('cover_tot')
         some_plots(lsm_input, plotvars)
 
     return lsm_input
@@ -752,13 +838,21 @@ if __name__ == "__main__":
     # -----------------------------
     # Path to directory with `BOFEK2012_010m.nc` and `top10nl_landuse_010m.nc`
     spatial_data_path = '//tsn.tno.nl/Data/sv/sv-059025_unix/ProjectData/ERP/Climate-and-Air-Quality/users/janssenrhh/landuse_soil'
-    # lufile   = 'top10nl_landuse_010m_2017_detailed.nc'
+    #lufile   = 'top10nl_landuse_010m_2017_detailed.nc' # with crop types
     lufile   = 'top10nl_landuse_010m.nc'
     soilfile = 'BOFEK2012_010m.nc'
+    depfile  = 'depac_landuse_parameters.nc'
+    
+    # =============================================================================
+    # Local ERA data paths    
+    # =============================================================================
+    era5_base = '//tsn.tno.nl/RA-Data/Express/ra_express_modasuscratch_unix/models/LEIP/europe_w30e70s5n75/ECMWF/od/ifs/0001'
+    andir    = os.path.join(era5_base, 'an/sfc/F640/0000')
+    fcdir    = os.path.join(era5_base, 'fc/sfc/F1280')
     
     # Output directory of DALES input files
     cwd = os.getcwd()
-    output_path = os.path.join(cwd, 'eindhoven_small')
+    output_path = os.path.join(cwd, 'eindhoven')
     
     # Start date/time of experiment
     start_date = datetime(year=2016, month=8, day=17, hour=4)
@@ -767,15 +861,25 @@ if __name__ == "__main__":
     domain = domains['eindhoven_small']
                     
     # land use types
-    lu_types = lu_types_basic
-    # lu_types = lu_types_build
-    #lu_types  = lu_types_crop
-    #lu_types  = lu_types_depac
+    # lu_types = lu_types_basic
+    # lu_types = lu_types_build # basic + buildings
+    # lu_types  = lu_types_crop
+    lu_types  = lu_types_depac
+    
+    # land use parameters
+    parnames_lsm = ['cover','c_veg','z0m','z0h','lai','ar','br',
+                    'lambda_s','lambda_us','rs_min','gD','tskin','lutype']
+    parnames_dep = ['R_inc_b','R_inc_h','SAI_a','SAI_b',
+                    'fmin','alpha','Tmin','Topt','Tmax','gs_max',
+                    'vpd_min','vpd_max','gamma_stom','gamma_soil_c_fac',
+                    'gamma_soil_default']
+    parnames = parnames_lsm + parnames_dep
 
-
+    lwrite = False
+    lplot  = True
 
     # experiment ID
-    exp_id = 1
+    exp_id = 0
 
     # number of soil layers
     ktot_soil = 4 
@@ -787,4 +891,13 @@ if __name__ == "__main__":
     # End settings
     # -----------------------------
 
-    lsm_input = process_input(lu_types, domain, output_path, start_date, exp_id, ktot_soil)
+    lsm_input = process_input(lu_types, 
+                              parnames, 
+                              domain, 
+                              output_path, 
+                              andir, 
+                              fcdir, 
+                              start_date, 
+                              exp_id, 
+                              ktot_soil, 
+                              lwrite, lplot)
