@@ -105,7 +105,18 @@ top10_ids = {
     'dodenakker_met_bos': 27,
     'braakliggend': 28,
     'bebouwd_gebied': 29,
-    'overig': 30}
+    'overig': 30,
+    'Barley': 1101,
+    'Flower': 1102,
+    'Fodder': 1103,
+    'Maize': 1104,
+    'Oat': 1105,
+    'Other_cereal': 1106,
+    'Potato': 1107,
+    'Rapeseed': 1108,
+    'Rye': 1109,
+    'Sugar_beet': 1110,
+    'Wheat': 1111,}
 
 # Reverse of top10_ids table:
 top10_names = {v: k for k, v in top10_ids.items()}
@@ -140,11 +151,14 @@ top10_to_ifs = {
     19: 22,
 
     # Road et al.:
-    20 : 21,     # weg_verhard -> road
+    #20 : 21,     # weg_verhard -> road
     21 : 10,     # weg_onverhard -> semi-desert
     22 : 10,     # weg_half_verhard -> semi-desert
     23 : 21,     # weg_onbekend -> road
-    24 : 21,     # spoorbaanlichaam -> road
+    #24 : 21,     # spoorbaanlichaam -> road
+    #adapted to LU type 'asphalt'
+    20 : 20,     # weg_verhard -> road
+    24 : 20,     # spoorbaanlichaam -> road
 
     # Misc:
     25 : 10,     # basaltblokken_steenglooiing -> semi-desert
@@ -154,7 +168,20 @@ top10_to_ifs = {
 
     # Urban
     29 : 20,    # bebouwd gebied -> urban
-    30 : 20}    # overig (=mostly urban) -> urban
+    30 : 20,    # overig (=mostly urban) -> urban
+    
+    1101 : 9,   # Barley 
+    1102 : 9,   # Flower
+    1103 : 9,   # Fodder
+    1104 : 9,   # Maize
+    1105 : 9,   # Oat
+    1106 : 9,   # Other_cereal
+    1107 : 9,   # Potato
+    1108 : 9,   # Rapeseed
+    1109 : 9,   # Rye
+    1110 : 9,   # Sugar_beet
+    1111 : 9,   # Wheat
+    }
 
 
 if __name__ == '__main__':
