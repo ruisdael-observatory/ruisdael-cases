@@ -543,8 +543,7 @@ def init_lutypes_ifs(lsm_input, lu_dict, parnames_lsm ):
               
                 if parname == 'cover':
                     print('LU type TOP10:', top10_names[vt])
-                    # parfield[mask] *= 1
-                    parfield[mask] *= ifs_vegetation.c_veg[iv]
+                    parfield[mask] *= 1
                 elif parname == 'c_veg':
                     # TODO Note that cveg < cover; assign cover-cveg to bare soil
                     parfield[mask] *= ifs_vegetation.c_veg[iv]
@@ -621,14 +620,12 @@ def fill_bare_soil(lsm_input, bs_name):
     cover_bs0 = getattr(lsm_input, 'cover_'+bs_name)
     # cover_bs1 = 1.-cover
     
-    cveg      = getattr(lsm_input, 'c_veg_tot')
-    cveg_bs0  = getattr(lsm_input, 'c_veg_'+bs_name)
-
-    # cover_bs = np.round(cover_bs0 + cover_bs1, 6)
-    cover_bs = np.round(1 - cveg + cover_bs0, 6)
-
+    # cveg      = getattr(lsm_input, 'c_veg_tot')
+    # cveg_bs0  = getattr(lsm_input, 'c_veg_'+bs_name)
+    # cover_bs = np.round(1 - cveg + cover_bs0, 6)
+    cover_bs = np.round(1 - cover + cover_bs0, 6)
     
-    setattr(lsm_input, 'cover_'+bs_name, cover_bs)
+    setattr(lsm_input, 'cover_' + bs_name, cover_bs)
 
 
     return lsm_input
@@ -844,7 +841,7 @@ if __name__ == "__main__":
     depfile  = 'depac_landuse_parameters.nc'
     
     # =============================================================================
-    # Local ERA data paths    
+    # Local ECMWF data paths
     # =============================================================================
     era5_base = '//tsn.tno.nl/RA-Data/Express/ra_express_modasuscratch_unix/models/LEIP/europe_w30e70s5n75/ECMWF/od/ifs/0001'
     andir    = os.path.join(era5_base, 'an/sfc/F640/0000')
@@ -852,13 +849,16 @@ if __name__ == "__main__":
     
     # Output directory of DALES input files
     cwd = os.getcwd()
-    output_path = os.path.join(cwd, 'eindhoven')
+    output_path = os.path.join(cwd, '..', 'eindhoven_large')
+    if not os.path.exists(output_path): os.mkdir(output_path)
     
     # Start date/time of experiment
     start_date = datetime(year=2016, month=8, day=17, hour=4)
     
     # domain and domain decomposition definition    
-    domain = domains['eindhoven_small']
+    # domain = domains['eindhoven_small']
+    domain = domains['eindhoven_large']
+
                     
     # land use types
     # lu_types = lu_types_basic
@@ -875,11 +875,11 @@ if __name__ == "__main__":
                     'gamma_soil_default']
     parnames = parnames_lsm + parnames_dep
 
-    lwrite = False
+    lwrite = True
     lplot  = True
 
     # experiment ID
-    exp_id = 0
+    exp_id = 1
 
     # number of soil layers
     ktot_soil = 4 

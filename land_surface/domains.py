@@ -43,7 +43,7 @@ smalldomain = {'expname': 'smalldomain',
             'nprocy' : 4
             }
 
-domains = {'eindhoven': eindhoven,
+domains = {'eindhoven_large': eindhoven,
            'eindhoven_small': smalldomain,
            'test'     : test,
            'ruisdael' : ruisdael 
