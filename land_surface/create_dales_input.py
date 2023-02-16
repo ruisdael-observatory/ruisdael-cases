@@ -805,7 +805,7 @@ def process_input(lu_types, parnames, domain, output_path, andir, fcdir, start_d
     lsm_input, lu_dict  = process_top10NL_map(lufile, lu_types, lsm_input, nn_dominant, nblockx, nblocky, domain)
 
     lsm_input = init_lutypes_ifs(lsm_input, lu_dict, parnames_lsm )
-    # lsm_input = init_lutypes_dep(lsm_input, lu_dict, parnames_dep, depfile )
+    lsm_input = init_lutypes_dep(lsm_input, lu_dict, parnames_dep, depfile )
 
    
     if lwrite:
