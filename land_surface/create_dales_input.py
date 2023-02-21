@@ -451,7 +451,8 @@ def process_top10NL_map(lufile, lutypes, lsm_input, nn_dominant, nblockx, nblock
                 nblockx=nblockx, nblocky=nblocky, 
                 dx=domain['dx'])
         if -1 in np.unique(lutypes[lu]['lu_domid']):
-            lutypes[lu]['lu_domid'][lutypes[lu]['lu_domid']==-1] = np.unique(lutypes[lu]['lu_domid'])[1]
+#            lutypes[lu]['lu_domid'][lutypes[lu]['lu_domid']==-1] = np.unique(lutypes[lu]['lu_domid'])[1]
+            lutypes[lu]['lu_domid'][lutypes[lu]['lu_domid']==-1] = np.unique(lutypes[lu]['lu_domid'])[0]
             print('filling domid for', lu)
             #TODO: smarter way to fill missing values
         setattr(lsm_input, 'c_'+lu, lu_types[lu]['lu_frac']) 
@@ -834,8 +835,9 @@ if __name__ == "__main__":
     # Settings
     # -----------------------------
     # Path to directory with `BOFEK2012_010m.nc` and `top10nl_landuse_010m.nc`
-    spatial_data_path = '//tsn.tno.nl/Data/sv/sv-059025_unix/ProjectData/ERP/Climate-and-Air-Quality/users/janssenrhh/landuse_soil'
+    #spatial_data_path = '//tsn.tno.nl/Data/sv/sv-059025_unix/ProjectData/ERP/Climate-and-Air-Quality/users/geerslfg/landuse_soil'
     #lufile   = 'top10nl_landuse_010m_2017_detailed.nc' # with crop types
+    spatial_data_path = '/remotefs/ka_usv_01/sv-059025_unix/ProjectData/ERP/Climate-and-Air-Quality/users/geerslfg/landuse_soil'
     lufile   = 'top10nl_landuse_010m.nc'
     soilfile = 'BOFEK2012_010m.nc'
     depfile  = 'depac_landuse_parameters.nc'
@@ -849,16 +851,15 @@ if __name__ == "__main__":
     
     # Output directory of DALES input files
     cwd = os.getcwd()
-    output_path = os.path.join(cwd, '..', 'eindhoven_large')
-    if not os.path.exists(output_path): os.mkdir(output_path)
+    output_path = os.path.join(cwd, '../../')
     
     # Start date/time of experiment
-    start_date = datetime(year=2016, month=8, day=17, hour=4)
+#    start_date = datetime(year=2018, month=5, day=25) #, hour=4)
+    start_date = datetime(year=2018, month=11, day=21) #, hour=4)
     
     # domain and domain decomposition definition    
-    # domain = domains['eindhoven_small']
-    domain = domains['eindhoven_large']
-
+    domain = domains['veluwe']
+#    domain = domains['veluwe_small']
                     
     # land use types
     # lu_types = lu_types_basic
@@ -876,10 +877,10 @@ if __name__ == "__main__":
     parnames = parnames_lsm + parnames_dep
 
     lwrite = True
-    lplot  = True
+    lplot  = False
 
     # experiment ID
-    exp_id = 1
+    exp_id = 4
 
     # number of soil layers
     ktot_soil = 4 
