@@ -70,8 +70,8 @@ def _interp_block(
 
 
 def interp_dominant(x_out, y_out, field_in, valid_codes, max_code, nn, nblockx, nblocky, dx):
-    """
-    Interpolate field (field_in), using the most occuring value in a stencil of +/-nn grid points.
+    """Interpolate field (field_in), using the most occuring value in a stencil of +/-nn grid points.
+
     Interpolation is done in `nblockx * nblocky` blocks, to prevent memory -> BOEM.
     """
 

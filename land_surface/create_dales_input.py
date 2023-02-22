@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import xarray as xr
 import numpy as np
 #import sys
-import os
+# import os
+from pathlib import Path
 from datetime import datetime
 
 # Custom Python scripts/tools/...:
@@ -14,8 +15,11 @@ from bofek2012 import BOFEK_info
 from lsm_input_dales import LSM_input_DALES
 from era5_soil import init_theta_soil, calc_theta_rel #, download_era5_soil
 from domains import domains
-from landuse_types import lu_types_basic, lu_types_build, lu_types_crop, lu_types_depac
+# from landuse_types import lu_types_basic, lu_types_build, lu_types_crop, lu_types_depac
+from landuse_types import lu_types_depac
 
+# Correction factor for aspect ratio of plots
+ASPECT_CORR = 2
 
 def init_dales_grid(domain, ktot_soil, lutypes, parnames):
     """
@@ -29,6 +33,8 @@ def init_dales_grid(domain, ktot_soil, lutypes, parnames):
         number of soil levels
     lutypes : dict
         disctionary with land use types
+    parnames : list
+        List of parameters to process
 
     Returns
     -------
@@ -75,7 +81,7 @@ def init_dales_grid(domain, ktot_soil, lutypes, parnames):
     lsm_input.x[:] = x_rd
     lsm_input.y[:] = y_rd
     
-    return(lsm_input, nn_dominant, nblockx, nblocky)
+    return lsm_input, nn_dominant, nblockx, nblocky
 
 
 def get_era5_data(andir, fcdir):
@@ -95,9 +101,9 @@ def get_era5_data(andir, fcdir):
     Parameters
     ----------
     andir : str
-        DESCRIPTION.
+        Dir with ECMWF analysis data.
     fcdir : str
-        DESCRIPTION.
+        Dir with ECMWF forecast data.
 
     Returns
     -------
@@ -147,10 +153,10 @@ def get_era5_data(andir, fcdir):
     
     
     #lsm: land sea mask
-    era5_lsm = xr.open_dataset('%s/lsm.nc' %(andir) )
+    era5_lsm = xr.open_dataset('%s/lsm.nc' % andir)
     
     #slt: soil type
-    era5_slt = xr.open_dataset('%s/slt.nc' %(andir) )
+    era5_slt = xr.open_dataset('%s/slt.nc' % andir)
 
     era5_stl  = {'era5_stl1': era5_stl1,
                  'era5_stl2': era5_stl2,
@@ -261,8 +267,6 @@ def process_era5_soilmoist(lsm_input, e5_soil):
         Class containing Dales input parameters for all LU types.
     e5_soil : xarray.Dataset 
         ERA5 soil properties
-    interpolate_era5 : TYPE
-        DESCRIPTION.
 
     Returns
     -------
@@ -328,20 +332,22 @@ def process_soil_map(soilfile, lsm_input, nn_dominant, nblockx, nblocky, domain,
 
     Parameters
     ----------
+    soilfile : str
+        File name of the soil map
     lsm_input : LSM_input_DALES 
         Class containing Dales input parameters for all LU types.
     nn_dominant : int
-        DESCRIPTION.
+        Number of grid points (+/-) used in "dominant" interpolation method.
     nblockx : int
         Number of blocks in x-direction.
     nblocky : int
         Number of blocks in y-direction.
     domain : dict
         Dales domain settings.
-    theta_rel : TYPE
-        DESCRIPTION.
-    ds_vg : TYPE
-        DESCRIPTION.
+    theta_rel : numpy array
+        Relative soil moisture content per layer.
+    ds_vg : xarray.Dataset
+        Van Genuchten parameters.
 
     Returns
     -------
@@ -395,12 +401,14 @@ def process_top10NL_map(lufile, lutypes, lsm_input, nn_dominant, nblockx, nblock
 
     Parameters
     ----------
+    lufile : str
+        Filename of the land use map
     lutypes : dict
         properties of each land use type.
     lsm_input : LSM_input_DALES 
         Class containing Dales input parameters for all LU types.
     nn_dominant : int
-        DESCRIPTION.
+        Number of grid points (+/-) used in "dominant" interpolation method.
     nblockx : int
         Number of blocks in x-direction.
     nblocky : int
@@ -513,6 +521,8 @@ def init_lutypes_ifs(lsm_input, lu_dict, parnames_lsm ):
         Class containing Dales input parameters for all LU types.
     lu_dict : dict
         LU type properties.
+    parnames_lsm : list
+        List of land use parameters to process
 
     Returns
     -------
@@ -535,8 +545,8 @@ def init_lutypes_ifs(lsm_input, lu_dict, parnames_lsm ):
             if parname == 'cover' or parname == 'c_veg':
                 parfield = lu_dict[lu]['lu_frac'].copy()
             else:
-                parfield = np.full(shape, np.nan)
-                # parfield = np.full(shape, 0.0)
+                # parfield = np.full(shape, np.nan)
+                parfield = np.full(shape, 0.0)
     
             for vt in lu_dict[lu]['lu_ids']:
                 iv = top10_to_ifs[vt]     # Index in ECMWF lookup table
@@ -589,12 +599,12 @@ def init_lutypes_ifs(lsm_input, lu_dict, parnames_lsm ):
 
 
 def calc_totcover(lsm_input, lu_types, ctype):
-    '''
+    """
     Calculate sum over cover of individual LU types to check if it sums up to 1
 
     Parameters
     ----------
-    lsm_input : LSM_input_DALES 
+    lsm_input : LSM_input_DALES
         Class containing Dales input parameters for all LU types.
     lu_types : dict
         LU type properties.
@@ -606,7 +616,7 @@ def calc_totcover(lsm_input, lu_types, ctype):
     totcover : np.array
         Total LU cover.
 
-    '''
+    """
     covers = [ctype + '_' + s for s in lu_types.keys()]
     totcover = np.zeros([lsm_input.jtot,lsm_input.itot])
     for c in covers:
@@ -645,6 +655,7 @@ def init_lutypes_dep(lsm_input, lu_dict, parnames_dep, depfile ):
         Names of deposition parameters.
     depfile : str
         Name of file with deposition parameters per LU type.
+
     Returns
     -------
     lsm_input : LSM_input_DALES 
@@ -663,14 +674,15 @@ def init_lutypes_dep(lsm_input, lu_dict, parnames_dep, depfile ):
         print(' processing', lu_dict[lu]['lu_long'])
         for parname in parnames_dep:
             # dummy value to whole field
-            parfield = np.full(shape, np.nan)
-            # parfield = np.full(shape, 0.0)
+            # parfield = np.full(shape, np.nan)
+            parfield = np.full(shape, 0.0)
 
             # print(parname)
 
             for vt in lu_dict[lu]['lu_ids']:
                 mask = (lu_dict[lu]['lu_domid'] == vt)
                 # TODO: get deposition parameters for each LU class
+                value = np.nan
                 if len(ds_dep[parname].dims) == 1:
                     value = ds_dep[parname].sel(landuse_vegetation='_'.join([lu,vegetation])).values
                     if np.isnan(value):
@@ -687,8 +699,8 @@ def init_lutypes_dep(lsm_input, lu_dict, parnames_dep, depfile ):
 
 
 def write_output(lsm_input, 
-                 expname,
-                 dx,
+                 # expname,  # unused
+                 # dx,  # unused
                  write_binary_output=False, write_netcdf_output=True,
                  nprocx=4, nprocy=4):
     """
@@ -704,6 +716,10 @@ def write_output(lsm_input,
         Write binary output. The default is False.
     write_netcdf_output : bool, optional
         Write netCDF output. The default is True.
+    nprocx : int, optional
+        Number of processors in x-direction. Default 4/
+    nprocy : int, optional
+        Number of processors in y-direction. Default 4/
 
     Returns
     -------
@@ -728,6 +744,8 @@ def some_plots(lsm_input, plotvars):
     ----------
     lsm_input : LSM_input_DALES 
         Class containing Dales input parameters for all LU types.
+    plotvars : list
+        List of variables to plot.
 
     Returns
     -------
@@ -750,7 +768,8 @@ def some_plots(lsm_input, plotvars):
     for plotvar in list(ds_lsm.variables):
         if plotvar == 'x' or plotvar == 'y': continue
         fig, ax = plt.subplots(1)
-        ds_lsm[plotvar].plot(ax=ax, cmap='Reds',vmin=0,vmax=None)
+        ax.set_aspect(abs((lsm_input.y[-1] - lsm_input.y[0])/(lsm_input.x[-1] - lsm_input.x[0])) * ASPECT_CORR)
+        ds_lsm[plotvar].plot(ax=ax, cmap='Reds', vmin=0, vmax=None)
         plt.tight_layout()
         
     plt.show()
@@ -766,6 +785,7 @@ def process_input(lu_types, parnames, domain, output_path, andir, fcdir, start_d
     Process soil moisture
     Process soil map
     Process land use map
+
     Set land use properties
     Write output files in netCDF and binary (to be phased out) format
     Make some standard plots (optional)
@@ -774,6 +794,8 @@ def process_input(lu_types, parnames, domain, output_path, andir, fcdir, start_d
     ----------
     lu_types : dict
         LU type properties.
+    parnames : list
+        List of parameter names to process.
     domain : dict
         Dales domain settings.
     output_path : str
@@ -788,6 +810,10 @@ def process_input(lu_types, parnames, domain, output_path, andir, fcdir, start_d
         Experiment ID.
     ktot_soil : int
         Number of soil layers.
+    lwrite : bool
+        Flag to write the output.
+    lplot : bool
+        Flag to plot the output.
 
     Returns
     -------
@@ -811,8 +837,8 @@ def process_input(lu_types, parnames, domain, output_path, andir, fcdir, start_d
    
     if lwrite:
         write_output(lsm_input, 
-                      expname=domain['expname'],
-                      dx=domain['dx'],
+                      # expname=domain['expname'],  # unused
+                      # dx=domain['dx'],  # unused
                       write_binary_output=False, 
                       write_netcdf_output=True,
                       nprocx=1,
@@ -835,9 +861,9 @@ if __name__ == "__main__":
     # Settings
     # -----------------------------
     # Path to directory with `BOFEK2012_010m.nc` and `top10nl_landuse_010m.nc`
-    #spatial_data_path = '//tsn.tno.nl/Data/sv/sv-059025_unix/ProjectData/ERP/Climate-and-Air-Quality/users/geerslfg/landuse_soil'
+    spatial_data_path = '//tsn.tno.nl/Data/sv/sv-059025_unix/ProjectData/ERP/Climate-and-Air-Quality/users/geerslfg/landuse_soil'
     #lufile   = 'top10nl_landuse_010m_2017_detailed.nc' # with crop types
-    spatial_data_path = '/remotefs/ka_usv_01/sv-059025_unix/ProjectData/ERP/Climate-and-Air-Quality/users/geerslfg/landuse_soil'
+    # spatial_data_path = '/remotefs/ka_usv_01/sv-059025_unix/ProjectData/ERP/Climate-and-Air-Quality/users/geerslfg/landuse_soil'
     lufile   = 'top10nl_landuse_010m.nc'
     soilfile = 'BOFEK2012_010m.nc'
     depfile  = 'depac_landuse_parameters.nc'
@@ -845,21 +871,29 @@ if __name__ == "__main__":
     # =============================================================================
     # Local ECMWF data paths
     # =============================================================================
-    era5_base = '//tsn.tno.nl/RA-Data/Express/ra_express_modasuscratch_unix/models/LEIP/europe_w30e70s5n75/ECMWF/od/ifs/0001'
-    andir    = os.path.join(era5_base, 'an/sfc/F640/0000')
-    fcdir    = os.path.join(era5_base, 'fc/sfc/F1280')
-    
-    # Output directory of DALES input files
-    cwd = os.getcwd()
-    output_path = os.path.join(cwd, '../../')
-    
+    era5_base = Path('//tsn.tno.nl/RA-Data/Express/ra_express_modasuscratch_unix/models/LEIP/europe_w30e70s5n75/ECMWF'
+                     '/od/ifs/0001')
+    andir    = era5_base / 'an/sfc/F640/0000'
+    fcdir    = era5_base / 'fc/sfc/F1280'
+
+    # Settings
+    exp_id = 1  # experiment ID
+    ktot_soil = 4  # number of soil layers
+    domain_name = 'veluwe_small'
+    lwrite = True
+    lplot  = True
+
     # Start date/time of experiment
-#    start_date = datetime(year=2018, month=5, day=25) #, hour=4)
-    start_date = datetime(year=2018, month=11, day=21) #, hour=4)
-    
-    # domain and domain decomposition definition    
-    domain = domains['veluwe']
-#    domain = domains['veluwe_small']
+    start_date = datetime(year=2018, month=5, day=25) #, hour=4)
+    # start_date = datetime(year=2018, month=11, day=21) #, hour=4)
+
+    # Output directory of DALES input files
+    cwd = Path.cwd()
+    output_path = cwd / ".." / "cases" / domain_name
+    output_path.mkdir(exist_ok=True)
+
+    # domain and domain decomposition definition
+    domain = domains[domain_name]
                     
     # land use types
     # lu_types = lu_types_basic
@@ -876,15 +910,6 @@ if __name__ == "__main__":
                     'gamma_soil_default']
     parnames = parnames_lsm + parnames_dep
 
-    lwrite = True
-    lplot  = False
-
-    # experiment ID
-    exp_id = 4
-
-    # number of soil layers
-    ktot_soil = 4 
-    
     # write_binary_output = False    # Write binary input for DALES
     # write_netcdf_output = True    # Write LSM input as NetCDF output (for e.g. visualisation)
     
@@ -892,13 +917,5 @@ if __name__ == "__main__":
     # End settings
     # -----------------------------
 
-    lsm_input = process_input(lu_types, 
-                              parnames, 
-                              domain, 
-                              output_path, 
-                              andir, 
-                              fcdir, 
-                              start_date, 
-                              exp_id, 
-                              ktot_soil, 
+    lsm_input = process_input(lu_types, parnames, domain, str(output_path), andir, fcdir, start_date, exp_id, ktot_soil,
                               lwrite, lplot)

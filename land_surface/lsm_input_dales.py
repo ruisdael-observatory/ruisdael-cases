@@ -42,7 +42,10 @@ class LSM_input_DALES:
         zeros = np.zeros((jtot, itot), dtype=dtype_float)
         for lu in lu_types:
             for parname in parnames:
-                fields = self._setpar(fields, parname, lu, zeros)
+                # fields = self._setpar(fields, parname, lu, zeros)
+                fields = self._setpar(fields, parname, lu, zeros.copy())  # don't use 'zeros', because it creates a
+                # shallow copy of zeros. When the values are changed in an array containing this shallow copy,
+                # the values change in ALL shallow copies of zeros, including zeros itself.
         
         # total land use cover
         self.c_tot = np.zeros((jtot, itot), dtype=dtype_float)
@@ -57,7 +60,7 @@ class LSM_input_DALES:
         for lu in lu_types:
             ## LU type (-)
             varname = 'type_'+lu
-            setattr(self, varname, zeros) 
+            setattr(self, varname, zeros.copy())
 
         # if debug:
         #     # Init all values at a large negative number
