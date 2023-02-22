@@ -558,11 +558,15 @@ def init_lutypes_ifs(lsm_input, lu_dict, parnames_lsm ):
                 elif parname == 'c_veg':
                     # TODO Note that cveg < cover; assign cover-cveg to bare soil
                     parfield[mask] *= ifs_vegetation.c_veg[iv]
-                elif parname == 'lutype':                  
-                    parfield[mask] = iv
+                elif parname == 'lutype':
+                    # parfield[mask] = iv
+                    parfield[:] = iv  # LG: Only apply mask to cover and c_veg (DALES crashes when zeros or nans are in
+                                      # the array)
                 elif parname == 'tskin':
                     # TODO: assign tskin only for water surfaces
-                    parfield[mask] = 273.15
+                    # parfield[mask] = 273.15
+                    parfield[:] = 273.15  # LG: Only apply mask to cover and c_veg (DALES crashes when zeros or nans
+                                          # are in the array)
                 else:
                     if parname =='ar':
                         parname_ifs = 'a_r'
@@ -570,7 +574,8 @@ def init_lutypes_ifs(lsm_input, lu_dict, parnames_lsm ):
                         parname_ifs = 'b_r'
                     else:
                         parname_ifs = parname
-                    parfield[mask] = getattr(ifs_vegetation, parname_ifs) [iv]
+                    # parfield[mask] = getattr(ifs_vegetation, parname_ifs) [iv]
+                    parfield[:] = getattr(ifs_vegetation, parname_ifs) [iv]  # LG: Only apply mask to cover and c_veg
 
                 # Multiply grid point coverage with vegetation type coverage
                 #if lu == 'bs': continue
@@ -680,7 +685,7 @@ def init_lutypes_dep(lsm_input, lu_dict, parnames_dep, depfile ):
             # print(parname)
 
             for vt in lu_dict[lu]['lu_ids']:
-                mask = (lu_dict[lu]['lu_domid'] == vt)
+                # mask = (lu_dict[lu]['lu_domid'] == vt)
                 # TODO: get deposition parameters for each LU class
                 value = np.nan
                 if len(ds_dep[parname].dims) == 1:
@@ -690,9 +695,11 @@ def init_lutypes_dep(lsm_input, lu_dict, parnames_dep, depfile ):
                     # print(value)
                 elif len(ds_dep[parname].dims) == 2:
                     print('warning: parameter dependent on species')
-                    value = np.nan                
-                parfield[mask] = value
-                
+                    value = 0.0
+                # parfield[mask] = value
+                parfield[:] = value  # LG: Apply values on the complete field, to prevent DALES from crashing on
+                                     # divide by zero (the fill value) or nan (which does not exist in Fortran)
+
             setattr(lsm_input, '_'.join([parname, lu]), parfield)
 
     return lsm_input 
@@ -877,11 +884,11 @@ if __name__ == "__main__":
     fcdir    = era5_base / 'fc/sfc/F1280'
 
     # Settings
-    exp_id = 1  # experiment ID
+    exp_id = 3  # experiment ID
     ktot_soil = 4  # number of soil layers
-    domain_name = 'veluwe_small'
+    domain_name = 'veluwe'
     lwrite = True
-    lplot  = True
+    lplot  = False
 
     # Start date/time of experiment
     start_date = datetime(year=2018, month=5, day=25) #, hour=4)
