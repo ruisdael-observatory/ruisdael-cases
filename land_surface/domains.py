@@ -43,8 +43,40 @@ smalldomain = {'expname': 'smalldomain',
             'nprocy' : 4
             }
 
+<<<<<<< HEAD
 domains = {'eindhoven': eindhoven,
            'eindhoven_small': smalldomain,
            'test'     : test,
            'ruisdael' : ruisdael 
             }
+=======
+veluwe = {'expname': 'veluwe',
+            'x0' : 174000, 
+            'y0' : 448500,
+            'itot' : 400,
+            'jtot' : 200,
+            'dx' : 50,
+            'dy' : 50,
+            'nprocx' : 8,
+            'nprocy' : 4
+            }
+
+veluwe_small = {'expname': 'veluwe_small',
+            'x0' : 186000, 
+            'y0' : 448500,
+            'itot' : 160,
+            'jtot' : 80,
+            'dx' : 50,
+            'dy' : 50,
+            'nprocx' : 4,
+            'nprocy' : 2
+            }
+
+domains = {'eindhoven': eindhoven,
+           'eindhoven_small': smalldomain,
+           'test'     : test,
+           'ruisdael' : ruisdael, 
+           'veluwe' : veluwe,
+           'veluwe_small' : veluwe_small
+            }
+>>>>>>> 62c180ec579376b24bcaaad822547beb0dce8390

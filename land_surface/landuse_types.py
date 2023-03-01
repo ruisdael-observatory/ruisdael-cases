@@ -221,4 +221,4 @@ lu_types_depac = {'ara':ara,
                   'brn':brn,
                   'sem':sem,
                   'grs':grs,
-                  'urb':urb} 
+                  'urb':urb}

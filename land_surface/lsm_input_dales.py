@@ -42,8 +42,7 @@ class LSM_input_DALES:
         zeros = np.zeros((jtot, itot), dtype=dtype_float)
         for lu in lu_types:
             for parname in parnames:
-                fields = self._setpar(fields, parname, lu, zeros)
-
+                fields = self._setpar(fields, parname, lu, zeros.copy())  
         # total land use cover
         self.c_tot = np.zeros((jtot, itot), dtype=dtype_float)
         fields.append('cover_tot')
@@ -57,7 +56,7 @@ class LSM_input_DALES:
         for lu in lu_types:
             ## LU type (-)
             varname = 'type_'+lu
-            setattr(self, varname, zeros) 
+            setattr(self, varname, zeros.copy())
 
         # if debug:
         #     # Init all values at a large negative number
@@ -142,7 +141,6 @@ class LSM_input_DALES:
         nc.createDimension('str3', size=3)
         nc.createDimension('str32', size=32)
         nc.createDimension('str1', size=1)
-
 
         var_x = nc.createVariable('x', float, 'x')
         var_y = nc.createVariable('y', float, 'y')
