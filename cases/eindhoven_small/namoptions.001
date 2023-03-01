@@ -1,0 +1,324 @@
+&RUN
+iexpnr  = 001
+lwarmstart  = .false.
+startfile  = 'initdlatestmx000y000.001'
+runtime  = 46800.0
+! runtime  = 600.0
+! runtime  = 60.0
+trestart  = -1
+dtav_glob   = 900
+timeav_glob = 900
+ltotruntime = .true.
+dtmax = 10
+ladaptive = .true.
+peclet = 0.1
+irandom = 1
+randthl = 0.01
+randqt = 2.5e-5
+! number of tracers
+nsv = 3
+nprocx = 2
+nprocy = 2
+/
+
+&SOLVER
+solver_id = 100
+/
+
+&DOMAIN
+itot = 128
+jtot = 128
+kmax  = 128
+kmax_soil = 4
+
+xsize = 6400
+ysize = 6400
+
+xlat  = 51.5
+xlon  = 5.44
+xday  = 230
+xtime = 5
+xyear = 2016
+/
+
+&PHYSICS
+ps = 1e5
+thls = 300
+lmoist = .true.
+lcoriol = .true.
+ltimedep = .true.
+iradiation = 3
+igrw_damp = 3
+timerad = 60
+/
+
+&NAMSURFACE
+! isurf 1: interactive scheme; isurf 11: lsm
+isurf = 11
+! Roughness length for momentum
+z0mav = 0.075
+! Roughness length for heat
+z0hav = 0.003
+Cskinav = 0
+lambdaskinav = 10
+Qnetav = 0
+Wlav = 0.0001
+rsminav = 100
+rssoilminav = 50
+LAIav = 2.5
+cvegav = 1
+albedoav = 0.23
+gDav = 0
+! area average root fraction
+rootfav = 0.40 0.30 0.30 0.00
+! area average deep soil temp (K)
+tsoildeepav  = 289.29476884238244
+! area average soil temp (K)
+tsoilav  = 286 290 290 289
+! area average rel. soil water content
+phiwav  = 0.16 0.17 0.16 0.23
+!volumetric soil porosity
+phi  = 0.403
+! volumetric moisture at wilting point
+phiwp  = 0.059
+! volumetric moisture at field capacity
+phifc  = 0.242
+/
+
+&NAMLSM
+lheterogeneous = .true.
+! number of land use types
+nlu = 10
+lfreedrainage  = .false. 
+dz_soil = 1.89 0.72 0.21 0.07 
+iinterp_t = 1
+iinterp_theta = 4
+/
+
+&NAMLSM_HOMOGENEOUS
+! Sub-grid tile fractions, should sum to 1:
+c_low = 0.2 
+c_high = 0.2
+c_bare = 0.2
+c_water = 0.2
+c_asph = 0.2
+
+! Roughness lengths for the sub-grid tiles:
+z0m_low = 0.075
+z0m_high  = 1.
+z0m_bare  = 0.01
+z0m_water = 0.001
+z0m_asph = 5.e-2
+
+z0h_low = 0.003 
+z0h_high  = 1.
+z0h_bare  = 0.001
+z0h_water = 0.0001
+z0h_asph = 5.e-4
+
+! Conductivity skin layer for stable (s) and unstable (us) conditions:
+lambda_s_low  = 10.
+lambda_s_high  = 15.
+lambda_s_bare = 15.
+lambda_s_asph = 0 
+
+lambda_us_low  = 10.
+lambda_us_high  = 40.
+lambda_us_bare = 15.
+lambda_us_asph = 0
+
+! Leaf area index low and high vegetation:
+lai_low  = 2.5
+lai_high = 4.
+
+! Minimum canopy or soil resistance:
+rs_min_low  = 100.
+rs_min_high = 250.
+rs_min_bare = 50.
+rs_min_asph = 500.
+
+! Initial profiles of soil temperature and soil moisture (from bottom to top):
+t_soil_p     = 286 290 290 289
+!theta_soil_p = 0.16 0.17 0.16 0.23
+theta_soil_p = 0.19 0.20 0.25 0.30
+
+! Soil index in `van_genuchten_parameters.nc`:
+soil_index_p = 4 4 4 4
+
+! Coefficients used to calculate the root fraction.
+ar_low  = 10.739
+br_low  = 2.608
+
+ar_high = 4.453
+br_high = 1.631
+
+! Coefficient for canopy resistance high vegetation
+gD_high = 0.0003
+
+! Fixed surface temperature open water:
+tskin_water = 290.
+/
+
+&DYNAMICS
+cu =  0.
+cv =  0.
+
+iadv_mom = 52
+iadv_tke = 52
+iadv_thl = 52
+iadv_qt  = 52
+iadv_sv  = 7, 7, 7
+
+lqlnr = .false.
+/
+
+&NAMNUDGE
+lnudge=.true.
+tnudgefac=10800
+/
+
+&NAMSUBGRID
+ldelta = .false.
+cn = 0.76
+ch1 = 1.
+/
+
+&NAMMICROPHYSICS
+imicro = 0
+l_sb = .true.
+Nc_0 = 200e6
+/
+
+&NAMRADIATION
+lCnstAlbedo = .true.
+/
+
+&NAMBULKMICROSTAT
+lmicrostat = .false.
+timeav = 300
+dtav = 300
+/
+
+&NAMCHECKSIM
+tcheck = 120
+/
+
+&NAMNETCDFSTATS
+lnetcdf = .true.
+lsync   = .true.
+/
+
+&NAMTIMESTAT
+! calculation of time series
+ltimestat = .true.
+/
+
+&NAMGENSTAT
+! generic slab averaged statistics
+lstat  = .true.
+/
+
+&NAMBUDGET
+! turbulent TKE budget calculation
+lbudget = .true.
+/
+
+&NAMSTATTEND
+! tendencies of prognostic variables
+ltend  = .false.
+/
+
+&NAMRADSTAT
+! slabaveraged radiation statistics
+lstat = .false.
+dtav   = 300
+timeav = 1800
+/
+
+&NAMLSMSTAT
+! land surface statistics
+lstat = .true.
+dtav   = 300
+timeav = 1800.
+/
+
+&NAMSAMPLING
+lsampcl    = .false.
+lsampco    = .false.
+lsampup    = .false.
+lsampbuup  = .false.
+lsampcldup = .false.
+dtav   = 300
+timeav = 300.
+/
+
+&NAMCROSSSECTION
+! dumping of crosssections of the field
+lcross = .true.
+lbinary = .false.
+crossheight = 1
+crossplane  = 64
+crossortho  = 64
+/
+
+&NAMLSMCROSSSECTION
+lcross = .true.
+! soil layers, numbered from bottom up
+crossheight = 4
+/
+
+&NAMEMISSION
+l_emission = .true.
+kemis      = 3
+svskip     = 0
+svco2sum   = -1
+emisnames  = 'co2   ', 'nox   ', 'nh3   '
+/
+
+&NAMDATETIME
+l_datetime = .true.
+startyear  = 2016
+startmonth = 8
+startday   = 17
+/
+
+&NAMFIELDDUMP
+! dumping of 3d-fields
+lfielddump = .true.
+lbinary    = .false.
+ldiracc    = .false.
+klow       = 1
+khigh      = 80
+ncoarse    = 1
+tmin       = 0
+tmax       = 0
+/
+
+&NAMCHEM
+lchem       = .false.
+tnor        = 19
+firstchem   = 1
+lastchem    = 20
+ldiuvar     = .true. 
+lchconst    = .false.
+h_ref       = 12.
+lcloudKconst= .false.
+t_ref	    = 293.
+p_ref	    = 100000.
+q_ref	    = 5.0e-3
+lchmovie    = .false.
+dtchmovie   = 60.
+lsegr       = .false.
+/
+
+&NAMDEPCROSSSECTION
+ldepcrosssection = .true.
+lbinary = .false.
+! dtav = 900
+/
+
+&NAMTRACERS
+ltracers    = .true.
+tracernames = 'dinges', 'nox', 'co2', 'nh3', 'qr'
+! tracernames = 'dinges', 'qr'
+/
