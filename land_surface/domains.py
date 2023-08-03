@@ -43,13 +43,6 @@ smalldomain = {'expname': 'smalldomain',
             'nprocy' : 4
             }
 
-<<<<<<< HEAD
-domains = {'eindhoven': eindhoven,
-           'eindhoven_small': smalldomain,
-           'test'     : test,
-           'ruisdael' : ruisdael 
-            }
-=======
 veluwe = {'expname': 'veluwe',
             'x0' : 174000, 
             'y0' : 448500,
@@ -79,4 +72,3 @@ domains = {'eindhoven': eindhoven,
            'veluwe' : veluwe,
            'veluwe_small' : veluwe_small
             }
->>>>>>> 62c180ec579376b24bcaaad822547beb0dce8390

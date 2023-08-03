@@ -875,11 +875,11 @@ if __name__ == "__main__":
     fcdir    = era5_base / 'fc/sfc/F1280'
 
     # Settings
-    exp_id = 3  # experiment ID
+    exp_id = 1  # experiment ID
     ktot_soil = 4  # number of soil layers
-    domain_name = 'veluwe'
+    domain_name = 'veluwe_small'
     lwrite = True
-    lplot  = False
+    lplot  = True
 
     # Start date/time of experiment
     start_date = datetime(year=2018, month=5, day=25) #, hour=4)
@@ -907,15 +907,6 @@ if __name__ == "__main__":
                     'vpd_min','vpd_max','gamma_stom','gamma_soil_c_fac',
                     'gamma_soil_default']
     parnames = parnames_lsm + parnames_dep
-
-    lwrite = False
-    lplot  = True
-
-    # experiment ID
-    exp_id = 0
-
-    # number of soil layers
-    ktot_soil = 4 
     
     # -----------------------------
     # End settings
