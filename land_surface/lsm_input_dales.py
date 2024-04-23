@@ -7,8 +7,9 @@ class LSM_input_DALES:
     """
     Data structure for the required input for the new LSM
     """
-    def __init__(self, itot, jtot, ktot, debug=False):
-        dtype_float = np.float64
+    def __init__(self, itot, jtot, ktot, dtype_float=np.float64, debug=False):
+
+        self.dtype_float = dtype_float
         dtype_int   = np.int32
 
         self.itot = itot
@@ -24,7 +25,7 @@ class LSM_input_DALES:
                 'lambda_us_lv', 'lambda_us_hv', 'lambda_us_bs',
                 'lai_lv', 'lai_hv' ,'rs_min_lv', 'rs_min_hv' ,'rs_min_bs',
                 'ar_lv' ,'br_lv', 'ar_hv', 'br_hv', 'gD', 'tskin_aq',
-                'index_soil', 't_soil', 'theta_soil']
+                'index_soil', 't_soil', 'theta_soil', 'index_ags']
 
         # Grid
         self.x = np.zeros(itot, dtype=dtype_float)
@@ -88,6 +89,9 @@ class LSM_input_DALES:
         # gD-coefficient for high vegetation
         self.gD = np.zeros((jtot, itot), dtype=dtype_float)
 
+        # A-Gs vegetation type/index
+        self.index_ags = np.zeros((jtot, itot), dtype=dtype_int)
+
         # Bonus, for offline LSM (not written to DALES input)
         self.type_lv = np.zeros((jtot, itot), dtype=dtype_int)
         self.type_hv = np.zeros((jtot, itot), dtype=dtype_int)
@@ -137,8 +141,8 @@ class LSM_input_DALES:
         dimy = nc.createDimension('y', self.jtot)
         dimz = nc.createDimension('z', self.ktot)
 
-        var_x = nc.createVariable('x', np.float, 'x')
-        var_y = nc.createVariable('y', np.float, 'y')
+        var_x = nc.createVariable('x', self.dtype_float, 'x')
+        var_y = nc.createVariable('y', self.dtype_float, 'y')
 
         var_x[:] = self.x[:]
         var_y[:] = self.y[:]
@@ -149,7 +153,7 @@ class LSM_input_DALES:
         for field in self.fields + bonus:
             data = getattr(self, field)
             dims = ['y', 'x'] if data.ndim == 2 else ['z', 'y', 'x']
-            var  = nc.createVariable(field, np.float, dims)
+            var  = nc.createVariable(field, self.dtype_float, dims)
             var[:] = data[:]
 
         nc.close()

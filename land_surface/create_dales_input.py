@@ -26,13 +26,19 @@ era5_path = '/projects/0/nwo21036/ERA5_soil/'
 # Output directory of DALES input files
 output_path = '/projects/0/nwo21036/DALES_input/'
 
+"""
+spatial_data_path = '/home/scratch1/meteo_data/LASSIE'
+era5_path = '/home/scratch1/meteo_data/ERA5/soil_dales'
+output_path = 'tmp'
+"""
+
 # Start date/time of experiment
-start_date = datetime(year=2021, month=9, day=24, hour=0)
+start_date = datetime(year=2016, month=8, day=15, hour=6)
 
 # Open BC domain 2022
 # power-of-two grid size
 # domain aligned with harmonie grid
-if True:
+if False:
     x0 = 917500.0
     y0 = 965000.0
     itot = 1024
@@ -58,17 +64,17 @@ if False:
     nprocy = 12
 
 # Test domain:
-if False:
+if True:
     x0 = 912500
     y0 = 940000
 
     # LES grid:
-    itot = 64
-    jtot = 64
-    dx   = 400
-    dy   = 400
+    itot = 384
+    jtot = 192
+    dx   = 500
+    dy   = 500
 
-    nprocx = 2
+    nprocx = 4
     nprocy = 2
 
 
@@ -320,6 +326,16 @@ lsm_input.type_bs[:,:] = iv
 #
 lsm_input.z0m_aq[:,:] = 0.1     # ??
 lsm_input.z0h_aq[:,:] = 0.1e-2  # ??
+
+#
+# Init A-Gs
+# NOTE: The current A-Gs implementation is extremely limited, and only supports
+#       a single vegetation type per grid point (so no tiling!), and grass and forest
+#       as vegetation type.
+#
+mask = frac_low >= frac_high
+lsm_input.index_ags[mask] = 1   # Grass
+lsm_input.index_ags[~mask] = 2  # Forest
 
 #
 # Write output
