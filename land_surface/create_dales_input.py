@@ -452,7 +452,6 @@ def process_top10NL_map(spatial_data_path, lufile, lu_types, lsm_input, nn_domin
 
     # set LU cover for each grid cell    
     for lu in lu_types:
-        ipdb.set_trace()
         lu_types[lu]['lu_domid'], lu_types[lu]['lu_frac'] = interp_dominant(
                 x2d_rd, y2d_rd, 
                 ds_lu.land_use, 
@@ -567,9 +566,9 @@ def init_lutypes_ifs(lsm_input, lu_dict, parnames_lsm ):
                                       # the array)
                 elif parname == 'tskin':
                     # TODO: assign tskin only for water surfaces
-                    # parfield[mask] = 273.15
-                    parfield[:] = 273.15  # LG: Only apply mask to cover and c_veg (DALES crashes when zeros or nans
+                    # parfield[:] = 273.15  # LG: Only apply mask to cover and c_veg (DALES crashes when zeros or nans
                                           # are in the array)
+                    parfield[:] = 283.15  # set default tskin to 10 deg. C
                 else:
                     if parname =='ar':
                         parname_ifs = 'a_r'
@@ -893,7 +892,6 @@ if __name__ == "__main__":
 
     # Start date/time of experiment
     start_date = datetime(year=2018, month=5, day=25) #, hour=4)
-    # start_date = datetime(year=2018, month=11, day=21) #, hour=4)
 
     # Output directory of DALES input files
     cwd = Path.cwd()
