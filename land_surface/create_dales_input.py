@@ -8,7 +8,8 @@ from pathlib import Path
 from datetime import datetime
 
 # Custom Python scripts/tools/...:
-sys.path.append(str(Path(__file__).parent)
+sys.path.append(str(Path(__file__).parent)  # Horrible hack
+# TODO transform this into a properly formatted importable python library
 from vegetation_properties import ifs_vegetation, top10_to_ifs, top10_names
 from interpolate import interp_dominant, interp_soil, Interpolate_era5
 from spatial_transforms import proj4_rd #, proj4_hm
